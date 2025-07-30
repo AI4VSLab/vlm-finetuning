@@ -1,5 +1,5 @@
 # from algorithm import SLTrainer
-# from model import ClassifierModel
+from model import VisionLanguageModel
 from data import OCTExpertData
 
 import logging

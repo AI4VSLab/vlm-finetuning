@@ -1,3 +1,3 @@
-__all__ = ["ClassifierModel"]
+__all__ = ["VisionLanguageModel"]
 
-from model.model import ClassifierModel
+from model.model import VisionLanguageModel

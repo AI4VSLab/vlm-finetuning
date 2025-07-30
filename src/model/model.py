@@ -1,101 +1,72 @@
-import torch
-from torch import nn, optim
-from model.network import MLP
+from unsloth import FastVisionModel, get_chat_template
+from transformers import TextStreamer
 import logging
-import os
 
 logger = logging.getLogger(__name__)
 
 
-class ClassifierModel:
+class VisionLanguageModel:
     def __init__(self, config, device):
         logger.info("Creating model...")
         self.config = config
         self.device = device
-
-        self.network = MLP(
-            self.config.network.input_dim,
-            self.config.network.output_dim,
-            self.config.network.hidden_dims,
-        ).to(self.device)
-
-        self.optimizer = optim.Adam(
-            self.network.parameters(),
-            lr=self.config.optimizer.learning_rate,
-            weight_decay=self.config.optimizer.weight_decay,
+        model, processor = FastVisionModel.from_pretrained(
+            self.config.model_name,
+            load_in_4bit = True, # Use 4bit to reduce memory use. False for 16bit LoRA.
+            use_gradient_checkpointing = "unsloth", # True or "unsloth" for long context
         )
-        self.loss = nn.CrossEntropyLoss()
+        model = FastVisionModel.get_peft_model(
+            model,
+            finetune_vision_layers     = True, # False if not finetuning vision layers
+            finetune_language_layers   = True, # False if not finetuning language layers
+            finetune_attention_modules = True, # False if not finetuning attention layers
+            finetune_mlp_modules       = True, # False if not finetuning MLP layers
 
-        self.scheduler = optim.lr_scheduler.ReduceLROnPlateau(
-            self.optimizer,
-            mode="min",
-            factor=self.config.scheduler.factor,
-            patience=self.config.scheduler.patience,
+            r = 16,                           # The larger, the higher the accuracy, but might overfit
+            lora_alpha = 16,                  # Recommended alpha == r at least
+            lora_dropout = 0,
+            bias = "none",
+            random_state = 3407,
+            use_rslora = False,               # We support rank stabilized LoRA
+            loftq_config = None,               # And LoftQ
+            target_modules = "all-linear",    # Optional now! Can specify a list if needed
+            modules_to_save=[
+                "lm_head",
+                "embed_tokens",
+            ],
         )
 
-        if self.config.load_from_checkpoint:
-            self.load()
+        self.instruction = """You are a highly skilled AI assistant specializing in ophthalmic diagnostics. Your task is to analyze Optical Coherence Tomography (OCT) images to determine the presence of Age-related Macular Degeneration (AMD) or if the image appears normal. Provide a concise explanation of your findings and a definitive diagnosis.
+        Your output must strictly follow this format:
+        Explanation: [Your detailed but concise reasoning based on OCT findings]
+        Diagnosis: [AMD or Normal]
+        """
 
-        num_trainable_params = sum(
-            p.numel() for p in self.network.parameters() if p.requires_grad
+        processor = get_chat_template(
+            processor,
+            "gemma-3"
         )
-        num_total_params = sum(p.numel() for p in self.network.parameters())
-        logger.info(
-            f"Trainable Parameters: {num_trainable_params:,} of {num_total_params:,} ({num_trainable_params / num_total_params:.2%})"
-        )
+
+        self.model = model
+        self.processor = processor
         logger.info("Model created.")
 
-    def train_mode(self):
-        self.network.train(True)
+    def generate(self, image):
+        messages = [
+            {
+                "role": "user",
+                "content": [{"type": "text", "text": instruction}, {"type": "image"}],
+            }
+        ]
+        input_text = self.processor.apply_chat_template(messages, add_generation_prompt=True)
+        inputs = self.processor(
+            image,
+            input_text,
+            add_special_tokens=False,
+            return_tensors="pt",
+        ).to(self.device)
 
-    def eval_mode(self):
-        self.network.train(False)
-
-    def predict(self, image):
-        image = image.to(self.device)
-        with torch.no_grad():
-            pred = self.network(image)
-        return pred
-
-    def train(self, batch, grad_accum_steps=1):
-        images, labels = batch
-        images, labels = images.to(self.device), labels.to(self.device)
-        preds = self.network(images)
-        loss = self.loss(preds, labels) / grad_accum_steps
-        loss.backward()
-        return loss.item() * grad_accum_steps
-
-    def validate(self, batch):
-        images, labels = batch
-        images, labels = images.to(self.device), labels.to(self.device)
-        with torch.no_grad():
-            preds = self.network(images)
-        loss = self.loss(preds, labels).item()
-        accuracy = (
-            preds.argmax(1) == labels
-        ).clone().detach().sum().item() / labels.size(0)
-        return loss, accuracy
-
-    def optimizer_step(self):
-        self.optimizer.step()
-        self.optimizer.zero_grad()
-
-    def scheduler_step(self, val_loss):
-        self.scheduler.step(val_loss)
-
-    def save(self):
-        save_path = self.config.checkpoint_path
-        logger.info(f"Saving model to {save_path}")
-        os.makedirs(os.path.dirname(save_path), exist_ok=True)
-        torch.save(self.network.state_dict(), save_path)
-
-    def load(self):
-        load_path = self.config.checkpoint_path
-        if os.path.exists(load_path):
-            logger.info(f"Loading model from {load_path}")
-            self.network.load_state_dict(
-                torch.load(load_path, map_location=self.device)
-            )
-        else:
-            logger.error(f"Checkpoint path not found: {load_path}")
-            raise FileNotFoundError(f"Checkpoint path not found: {load_path}")
+        text_streamer = TextStreamer(self.processor, skip_prompt=True)
+        result = self.model.generate(**inputs, streamer = text_streamer, max_new_tokens = 128,
+                                use_cache=True, temperature = 1.0, top_p = 0.95, top_k = 64)
+        return result
