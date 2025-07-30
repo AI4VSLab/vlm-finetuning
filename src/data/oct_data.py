@@ -37,7 +37,6 @@ class OCTExpertData:
             tfrecord_description,
             transform=self._preprocess_sample
         )
-        tf_loader = torch.utils.data.DataLoader(tf_dataset, batch_size=1)
 
         self.instruction = """You are a highly skilled AI assistant specializing in ophthalmic diagnostics. Your task is to analyze Optical Coherence Tomography (OCT) images to determine the presence of Age-related Macular Degeneration (AMD) or if the image appears normal. Provide a concise explanation of your findings and a definitive diagnosis.
         Your output must strictly follow this format:
@@ -45,7 +44,7 @@ class OCTExpertData:
         Diagnosis: [AMD or Normal]
         """
 
-        self.dataset = [self._convert_to_conversation(sample) for sample in tf_loader]
+        self.dataset = [self._convert_to_conversation(sample) for sample in tf_dataset]
         logger.info("OCTExpert data initialized.")
 
     def _preprocess_sample(self, sample):
