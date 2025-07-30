@@ -7,7 +7,7 @@ system:
   device: cpu
 
 data:
-  dataset_path: dataset/
+  train_path: dataset/VQA.tfrecord
   batch_size: 64
 
 model:

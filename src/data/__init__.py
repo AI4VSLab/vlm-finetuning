@@ -1,3 +1,3 @@
-__all__ = ["FashionMNISTData"]
+__all__ = ["OCTExpertData"]
 
-from data.data import FashionMNISTData
+from data.oct_data import OCTExpertData

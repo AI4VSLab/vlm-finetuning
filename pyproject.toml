@@ -11,10 +11,11 @@ dependencies = [
     "torch~=2.7",
     "hydra-core~=1.3",
     "tqdm~=4.67",
-    "torchvision~=0.22",
+    "tfrecord~=1.14",
+    "pillow~=11.3",
+    "numpy~=2.3",
+    "transformers~=4.54",
 ]
 
 [dependency-groups]
-dev = [
-    "ruff~=0.12",
-]
+dev = ["ruff~=0.12"]

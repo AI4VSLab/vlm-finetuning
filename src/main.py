@@ -1,6 +1,6 @@
-from algorithm import SLTrainer
-from model import ClassifierModel
-from data import FashionMNISTData
+# from algorithm import SLTrainer
+# from model import ClassifierModel
+from data import OCTExpertData
 
 import logging
 import torch
@@ -29,17 +29,17 @@ def main(config: DictConfig) -> None:
     device = setup(config.system)
 
     # --- DATA ---
-    data = FashionMNISTData(config.data)
+    data = OCTExpertData(config.data)
 
-    # --- MODEL ---
-    model = ClassifierModel(config.model, device)
+    # # --- MODEL ---
+    # model = ClassifierModel(config.model, device)
 
-    # --- ALGORITHM ---
-    trainer = SLTrainer(data, model, config.trainer)
-    trainer.run()
+    # # --- ALGORITHM ---
+    # trainer = SLTrainer(data, model, config.trainer)
+    # trainer.run()
 
-    # --- CLEANUP ---
-    cleanup()
+    # # --- CLEANUP ---
+    # cleanup()
 
 
 if __name__ == "__main__":
