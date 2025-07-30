@@ -1,0 +1,20 @@
+[project]
+name = "vlm-finetuning"
+description = "VLM finetuning for AMD diagnosis"
+version = "0.1.0"
+authors = [{ name = "AI4VS Lab" }]
+license = "MIT"
+license-files = ["LICENSE"]
+readme = "README.md"
+requires-python = ">=3.11"
+dependencies = [
+    "torch~=2.7",
+    "hydra-core~=1.3",
+    "tqdm~=4.67",
+    "torchvision~=0.22",
+]
+
+[dependency-groups]
+dev = [
+    "ruff~=0.12",
+]
