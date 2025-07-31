@@ -31,7 +31,7 @@ class OCTExpertData:
         logger.info(f"Train TFRecord path: {self.config.train_path}")
 
         # Initialize datasets for training and validation
-        tf_dataset = TFRecordDataset(
+        self.tfrecord_dataset = TFRecordDataset(
             self.config.train_path,
             None,
             tfrecord_description,
@@ -43,8 +43,11 @@ class OCTExpertData:
         Explanation: [Your detailed but concise reasoning based on OCT findings]
         Diagnosis: [AMD or Normal]
         """
+        # Create the processed dataset with conversation format
+        self.processed_dataset = [self._convert_to_conversation(sample) for sample in self.tfrecord_dataset]
 
-        self.dataset = [self._convert_to_conversation(sample) for sample in tf_dataset]
+        # For compatibility with Trainer/Evaluator, self.dataset points to the conversation-formatted data
+        self.dataset = self.processed_dataset
         logger.info("OCTExpert data initialized.")
 
     def _preprocess_sample(self, sample):

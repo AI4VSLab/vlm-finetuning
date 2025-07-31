@@ -1,6 +1,7 @@
 from algorithm import Trainer
+from algorithm import Evaluator
 from model import VisionLanguageModel
-from data import OCTExpertData
+from data import OCTExpertData, OCTTestData
 
 import logging
 import torch
@@ -29,14 +30,21 @@ def main(config: DictConfig) -> None:
     device = setup(config.system)
 
     # --- DATA ---
-    data = OCTExpertData(config.data)
+    # For training, use OCTExpertData
+    train_data = OCTExpertData(config.data)
+    # For testing and sample generation, use OCTTestData
+    test_data = OCTTestData(config.data)
 
     # --- MODEL ---
     model = VisionLanguageModel(config.model, device)
 
     # --- ALGORITHM ---
-    trainer = Trainer(data, model, config.trainer)
-    trainer.run()
+    # trainer = Trainer(train_data, model, config.trainer)
+    # trainer.run()
+
+    # --- EVALUATION ---
+    evaluator = Evaluator(model, train_data, test_data)
+    evaluator.run()
 
     # --- CLEANUP ---
     cleanup()

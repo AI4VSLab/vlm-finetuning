@@ -4,10 +4,11 @@ hydra:
       level: INFO
 
 system:
-  device: cpu
+  device: cuda
 
 data:
   train_path: /content/VQA.tfrecord
+  test_path: /home/ramanakshay/Downloads/ALL_IMAGES-20250731T165425Z-1-001/ALL_IMAGES
   batch_size: 64
 
 model:
@@ -15,5 +16,3 @@ model:
 
 trainer:
   epochs: 5
-  grad_accum_steps: 2
-  log_interval: 200

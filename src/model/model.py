@@ -57,7 +57,7 @@ class VisionLanguageModel:
     def inference_mode(self):
         FastVisionModel.for_inference(self.model)
 
-    def generate(self, image):
+    def generate(self, image, use_streamer=True):
         messages = [
             {
                 "role": "user",
@@ -72,7 +72,14 @@ class VisionLanguageModel:
             return_tensors="pt",
         ).to(self.device)
 
-        text_streamer = TextStreamer(self.processor, skip_prompt=True)
-        result = self.model.generate(**inputs, streamer = text_streamer, max_new_tokens = 128,
-                                use_cache=True, temperature = 1.0, top_p = 0.95, top_k = 64)
-        return result
+        if use_streamer:
+            text_streamer = TextStreamer(self.processor, skip_prompt=True)
+            self.model.generate(**inputs, streamer=text_streamer, max_new_tokens=128,
+                                use_cache=True, temperature=1.0, top_p=0.95, top_k=64)
+            return "" # Streamer prints, so return empty string or None
+        else:
+            outputs = self.model.generate(**inputs, max_new_tokens=128,
+                                            use_cache=True, temperature=1.0, top_p=0.95, top_k=64)
+            # Decode only the newly generated tokens (excluding the prompt)
+            decoded_output = self.processor.decode(outputs[0][inputs["input_ids"].shape[1]:], skip_special_tokens=True)
+            return decoded_output
