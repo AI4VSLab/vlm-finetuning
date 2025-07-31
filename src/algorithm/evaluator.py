@@ -50,6 +50,7 @@ class Evaluator:
                     continue
 
                 generated_text = self.model.generate(image, use_streamer=False)
+                print(generated_text)
                 predicted_diagnosis = self._parse_diagnosis(generated_text)
 
                 logger.debug(f"Sample {i}: True='{true_diagnosis}', Predicted='{predicted_diagnosis}'")

@@ -8,7 +8,7 @@ system:
 
 data:
   train_path: /content/VQA.tfrecord
-  test_path: /home/ramanakshay/Downloads/ALL_IMAGES-20250731T165425Z-1-001/ALL_IMAGES
+  test_path: /content/OCT_test_dataset
   batch_size: 64
 
 model:
