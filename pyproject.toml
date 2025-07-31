@@ -6,7 +6,7 @@ authors = [{ name = "AI4VS Lab" }]
 license = "MIT"
 license-files = ["LICENSE"]
 readme = "README.md"
-requires-python = ">=3.11"
+requires-python = ">=3.11, <3.13"
 dependencies = [
     "torch~=2.7",
     "hydra-core~=1.3",
