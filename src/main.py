@@ -1,4 +1,4 @@
-# from algorithm import SLTrainer
+from algorithm import Trainer
 from model import VisionLanguageModel
 from data import OCTExpertData
 
@@ -31,15 +31,15 @@ def main(config: DictConfig) -> None:
     # --- DATA ---
     data = OCTExpertData(config.data)
 
-    # # --- MODEL ---
-    # model = ClassifierModel(config.model, device)
+    # --- MODEL ---
+    model = VisionLanguageModel(config.model, device)
 
-    # # --- ALGORITHM ---
-    # trainer = SLTrainer(data, model, config.trainer)
-    # trainer.run()
+    # --- ALGORITHM ---
+    trainer = Trainer(data, model, config.trainer)
+    trainer.run()
 
-    # # --- CLEANUP ---
-    # cleanup()
+    # --- CLEANUP ---
+    cleanup()
 
 
 if __name__ == "__main__":

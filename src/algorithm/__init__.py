@@ -1,3 +1,3 @@
-__all__ = ["SLTrainer"]
+__all__ = ["Trainer"]
 
-from algorithm.trainer import SLTrainer
+from algorithm.trainer import Trainer
