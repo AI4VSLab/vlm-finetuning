@@ -1,5 +1,4 @@
 import logging
-from unsloth import FastVisionModel
 from unsloth.trainer import UnslothVisionDataCollator
 from trl import SFTTrainer, SFTConfig
 
@@ -12,7 +11,7 @@ class Trainer:
         self.model = model
         self.data = data
 
-        FastVisionModel.for_training(model.model)
+        self.model.train_mode()
 
         model = self.model.model
         processor = self.model.processor

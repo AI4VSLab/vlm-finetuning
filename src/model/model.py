@@ -51,11 +51,17 @@ class VisionLanguageModel:
         self.processor = processor
         logger.info("Model created.")
 
+    def train_mode(self):
+        FastVisionModel.for_training(self.model)
+
+    def inference_mode(self):
+        FastVisionModel.for_inference(self.model)
+
     def generate(self, image):
         messages = [
             {
                 "role": "user",
-                "content": [{"type": "text", "text": instruction}, {"type": "image"}],
+                "content": [{"type": "text", "text": self.instruction}, {"type": "image"}],
             }
         ]
         input_text = self.processor.apply_chat_template(messages, add_generation_prompt=True)
