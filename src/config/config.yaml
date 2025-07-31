@@ -9,10 +9,15 @@ system:
 data:
   train_path: /content/VQA.tfrecord
   test_path: /content/OCT_test_dataset
-  batch_size: 64
 
 model:
   model_name: "unsloth/gemma-3-4b-pt"
 
 trainer:
-  epochs: 5
+  num_epochs: 10
+  batch_size: 8
+  grad_accum_steps: 1
+
+evaluator:
+  num_accuracy_samples: 50
+  num_generation_samples: 3

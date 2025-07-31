@@ -39,11 +39,10 @@ def main(config: DictConfig) -> None:
     model = VisionLanguageModel(config.model, device)
 
     # --- ALGORITHM ---
-    # trainer = Trainer(train_data, model, config.trainer)
-    # trainer.run()
+    trainer = Trainer(train_data, model, config.trainer)
+    trainer.run()
 
-    # --- EVALUATION ---
-    evaluator = Evaluator(model, train_data, test_data)
+    evaluator = Evaluator(model, train_data, test_data, config.evaluator)
     evaluator.run()
 
     # --- CLEANUP ---

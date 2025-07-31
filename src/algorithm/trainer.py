@@ -21,8 +21,8 @@ class Trainer:
             processing_class=processor.tokenizer,
             data_collator=UnslothVisionDataCollator(model, processor),
             args = SFTConfig(
-                per_device_train_batch_size = 1,
-                gradient_accumulation_steps = 4,
+                per_device_train_batch_size = self.config.batch_size,
+                gradient_accumulation_steps = self.config.grad_accum_steps,
                 gradient_checkpointing = True,
 
                 # use reentrant checkpointing
@@ -30,7 +30,7 @@ class Trainer:
                 max_grad_norm = 0.3,              # max gradient norm based on QLoRA paper
                 warmup_ratio = 0.03,
                 #max_steps = 30,
-                num_train_epochs = 20,          # Set this instead of max_steps for full training runs
+                num_train_epochs = self.config.num_epochs,          # Set this instead of max_steps for full training runs
                 learning_rate = 2e-4,
                 logging_steps = 1,
                 save_strategy="steps",
