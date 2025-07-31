@@ -9,24 +9,28 @@ logger = logging.getLogger(__name__)
 class Trainer:
     def __init__(self, data, model, config):
         self.config = config
+        self.model = model
+        self.data = data
 
         FastVisionModel.for_training(model.model)
 
+        model = self.model.model
+        processor = self.model.processor
         self.trainer = SFTTrainer(
-            model=model.model,
-            train_dataset=data.dataset,
-            processing_class=model.processor.tokenizer,
-            data_collator=UnslothVisionDataCollator(model.model, model.processor),
+            model=model,
+            train_dataset=self.data.dataset,
+            processing_class=processor.tokenizer,
+            data_collator=UnslothVisionDataCollator(model, processor),
             args = SFTConfig(
-                per_device_train_batch_size = 4,
-                gradient_accumulation_steps = 2,
+                per_device_train_batch_size = 1,
+                gradient_accumulation_steps = 4,
                 gradient_checkpointing = True,
 
                 # use reentrant checkpointing
                 gradient_checkpointing_kwargs = {"use_reentrant": False},
                 max_grad_norm = 0.3,              # max gradient norm based on QLoRA paper
                 warmup_ratio = 0.03,
-                # max_steps = 30,
+                #max_steps = 30,
                 num_train_epochs = 20,          # Set this instead of max_steps for full training runs
                 learning_rate = 2e-4,
                 logging_steps = 1,
@@ -42,8 +46,7 @@ class Trainer:
                 remove_unused_columns = False,
                 dataset_text_field = "",
                 dataset_kwargs = {"skip_prepare_dataset": True},
-                dataset_num_proc = 2,
-                max_seq_length = 2048,
+                max_length = 2048,
             )
         )
 
