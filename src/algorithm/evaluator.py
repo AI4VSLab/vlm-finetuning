@@ -1,10 +1,9 @@
 import logging
-import re
 import random
 from tqdm import tqdm
 from PIL import Image as PILImage
 import torch
-import numpy as np # Added for numpy array handling
+import numpy as np
 from torchvision import transforms
 
 logger = logging.getLogger(__name__)
@@ -12,114 +11,111 @@ logger = logging.getLogger(__name__)
 class Evaluator:
     def __init__(self, model, train_data, test_data):
         self.model = model
-        self.train_data = train_data # OCTExpertData for full evaluation
-        self.test_data = test_data   # OCTTestData for sample generation
+        self.train_data = train_data # OCTExpertData for training samples
+        self.test_data = test_data   # OCTTestData for test samples
         self.device = self.model.device # Get device from the model
 
         # Set model to inference mode
         self.model.inference_mode()
 
-        # Regex to extract diagnosis from model output
-        self.diagnosis_pattern = re.compile(r"Diagnosis: (AMD|Normal)")
-        logger.info("Evaluator initialized.")
+        logger.info("Evaluator initialized for sample generation.")
 
-    def _parse_diagnosis(self, text):
-        """Parses the diagnosis from the generated text."""
-        match = self.diagnosis_pattern.search(text)
-        if match:
-            return match.group(1)
-        return "N/A" # Not available or not parsed
+    def generate_train_samples(self, num_samples=5):
+        """Generates and prints predictions for a small sample of images from the training dataset."""
+        logger.info(f"Generating {num_samples} sample images from the training dataset...")
 
-    def evaluate_train_dataset(self):
-        """Calculates the accuracy of the model on the entire OCTExpertData (training) dataset and prints samples."""
-        logger.info("Starting training dataset evaluation...")
-        correct_predictions = 0
-        total_predictions = 0
+        if len(self.train_data.tfrecord_dataset) == 0:
+            logger.warning("Training dataset is empty. Cannot generate sample predictions.")
+            return
 
-        # Store samples for later generation
+        # Ensure we can randomly access samples
         all_train_samples = list(self.train_data.tfrecord_dataset)
+        sample_indices = random.sample(range(len(all_train_samples)), min(num_samples, len(all_train_samples)))
 
-        # Iterate through the expert_data.tfrecord_dataset for accuracy calculation
-        for i, sample in enumerate(tqdm(all_train_samples, desc="Evaluating training dataset")):
+        for i, idx in enumerate(sample_indices):
             try:
+                sample = all_train_samples[idx]
                 image = sample["image"]
-                true_diagnosis = "Normal" if sample["label"] == 0 else "AMD"
+                true_diagnosis_str = "Normal" if sample["label"] == 0 else "AMD"
+                true_text = sample["text"] # The original decoded text explanation
 
                 if image is None:
-                    logger.warning(f"Skipping sample {i} due to missing image.")
+                    logger.warning(f"Skipping train sample {idx} due to missing image.")
                     continue
 
-                generated_text = self.model.generate(image, use_streamer=False)
-                print(generated_text)
-                predicted_diagnosis = self._parse_diagnosis(generated_text)
+                logger.info(f"\n--- Train Sample {i+1}/{num_samples} (Original Index: {idx}) ---")
+                logger.info(f"True Diagnosis: {true_diagnosis_str}")
+                logger.info(f"True Explanation: {true_text}")
+                logger.info("Model Generated Output:")
 
-                logger.debug(f"Sample {i}: True='{true_diagnosis}', Predicted='{predicted_diagnosis}'")
-
-                if predicted_diagnosis == true_diagnosis:
-                    correct_predictions += 1
-                total_predictions += 1
-
-            except Exception as e:
-                logger.error(f"Error evaluating sample {i}: {e}")
-                continue
-
-        accuracy = (correct_predictions / total_predictions) * 100 if total_predictions > 0 else 0
-        logger.info(f"Training dataset evaluation completed. Accuracy: {accuracy:.2f}% ({correct_predictions}/{total_predictions})")
-
-        return accuracy
-
-    def evaluate_test_dataset(self):
-        """Calculates the accuracy of the model on the entire OCTTestData (test) dataset and prints samples."""
-        logger.info("Starting test dataset evaluation...")
-        correct_predictions = 0
-        total_predictions = 0
-
-        # Store samples for later generation
-        all_test_samples = list(self.test_data.dataset)
-
-        if len(all_test_samples) == 0:
-            logger.warning("Test dataset is empty. Cannot perform full evaluation.")
-            return 0.0
-
-        for i, (image, label_idx) in enumerate(tqdm(all_test_samples, desc="Evaluating test dataset")):
-            try:
-                true_diagnosis = self.test_data.dataset.classes[label_idx]
-
+                # Ensure image is PIL Image for model.generate
                 if not isinstance(image, PILImage.Image):
                     if isinstance(image, torch.Tensor):
                         image = transforms.ToPILImage()(image.cpu())
                     elif isinstance(image, np.ndarray):
                         image = PILImage.fromarray(image.astype(np.uint8))
                     else:
-                        logger.error(f"Unsupported image type for test sample {i}: {type(image)}. Skipping.")
+                        logger.error(f"Unsupported image type for train sample {idx}: {type(image)}. Skipping.")
                         continue
 
-                generated_text = self.model.generate(image, use_streamer=False)
-                predicted_diagnosis = self._parse_diagnosis(generated_text)
-
-                logger.debug(f"Test Sample {i}: True='{true_diagnosis}', Predicted='{predicted_diagnosis}'")
-
-                if predicted_diagnosis == true_diagnosis:
-                    correct_predictions += 1
-                total_predictions += 1
+                self.model.generate(image, use_streamer=True)
 
             except Exception as e:
-                logger.error(f"Error evaluating test sample {i}: {e}")
+                logger.error(f"Error generating train sample prediction for index {idx}: {e}")
                 continue
 
-        accuracy = (correct_predictions / total_predictions) * 100 if total_predictions > 0 else 0
-        logger.info(f"Test dataset evaluation completed. Accuracy: {accuracy:.2f}% ({correct_predictions}/{total_predictions})")
+        logger.info(f"Sample prediction generation completed for training dataset.")
 
-        return accuracy
+
+    def generate_test_samples(self, num_samples=5):
+        """Generates and prints predictions for a small sample of images from the test dataset."""
+        logger.info(f"Generating {num_samples} sample images from the test dataset...")
+
+        if len(self.test_data.dataset) == 0:
+            logger.warning("Test dataset is empty. Cannot generate sample predictions.")
+            return
+
+        # Ensure we can randomly access samples
+        all_test_samples = list(self.test_data.dataset)
+        sample_indices = random.sample(range(len(all_test_samples)), min(num_samples, len(all_test_samples)))
+
+        for i, idx in enumerate(sample_indices):
+            try:
+                image_from_dataset, label_idx = all_test_samples[idx]
+                image = image_from_dataset
+                true_label_name = self.test_data.dataset.classes[label_idx]
+
+                if image is None:
+                    logger.warning(f"Skipping test sample {idx} due to missing image.")
+                    continue
+
+                logger.info(f"\n--- Test Sample {i+1}/{num_samples} (Original Index: {idx}) ---")
+                logger.info(f"True Label: {true_label_name}")
+                logger.info("Model Generated Output:")
+
+                # Ensure image is PIL Image for model.generate
+                if not isinstance(image, PILImage.Image):
+                    if isinstance(image, torch.Tensor):
+                        image = transforms.ToPILImage()(image.cpu())
+                    elif isinstance(image, np.ndarray):
+                        image = PILImage.fromarray(image.astype(np.uint8))
+                    else:
+                        logger.error(f"Unsupported image type for test sample {idx}: {type(image)}. Skipping.")
+                        continue
+
+                self.model.generate(image, use_streamer=True)
+
+            except Exception as e:
+                logger.error(f"Error generating test sample prediction for index {idx}: {e}")
+                continue
+
+        logger.info("Sample prediction generation completed for test dataset.")
 
     def run(self):
-        """Runs all evaluation steps."""
-        logger.info("Starting full evaluation process...")
+        """Runs all sample generation steps."""
+        logger.info("Starting sample generation process...")
 
-        # Evaluate on training data
-        self.evaluate_train_dataset()
+        self.generate_train_samples(num_samples=5)
+        self.generate_test_samples(num_samples=5)
 
-        # Evaluate on test data
-        self.evaluate_test_dataset()
-
-        logger.info("Full evaluation process completed.")
+        logger.info("Sample generation process completed.")
