@@ -23,4 +23,5 @@ trainer:
   grad_accum_steps: 1
 
 evaluator:
-  num_samples: 50
+  num_accuracy_samples: 50
+  num_generation_samples: 3

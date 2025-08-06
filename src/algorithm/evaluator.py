@@ -183,8 +183,8 @@ class Evaluator:
         """Runs all evaluation and sample generation steps."""
         logger.info("Starting evaluation and sample generation process...")
 
-        num_accuracy_samples = self.config.num_samples
-        num_generation_samples = 5
+        num_accuracy_samples = getattr(self.config, 'evaluation_num_samples', 50)
+        num_generation_samples = getattr(self.config, 'generation_num_samples', 5)
 
         self.evaluate_train_dataset(num_samples=num_accuracy_samples)
         self.generate_train_samples(num_samples=num_generation_samples)
