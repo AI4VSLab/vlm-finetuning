@@ -6,7 +6,7 @@ import logging
 logger = logging.getLogger(__name__)
 
 
-class VisionLanguageModel:
+class UnslothVLM:
     def __init__(self, config, device):
         logger.info("Creating model...")
         self.config = config
