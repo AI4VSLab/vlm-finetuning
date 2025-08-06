@@ -1,8 +1,34 @@
 import logging
+import torch.nn.functional as F
 from unsloth.trainer import UnslothVisionDataCollator
 from trl import SFTTrainer, SFTConfig
 
 logger = logging.getLogger(__name__)
+
+
+class CustomSFTTrainer(SFTTrainer):
+    def compute_loss(self, model, inputs, return_outputs=False):
+        # Forward pass through the model
+        outputs = model(**inputs)
+        # The SFTTrainer typically handles shifting of labels for language modeling
+        # and computes loss based on the prediction of the next token.
+        # For a standard LLM finetuning, the loss is cross-entropy.
+        # logits: (batch_size, sequence_length, vocab_size)
+        # labels: (batch_size, sequence_length)
+
+        # Get logits and labels from the model output
+        logits = outputs.logits
+        labels = inputs["labels"]
+
+        # Shift so that tokens < n predict n
+        # This aligns the logits with the labels, as the model predicts the *next* token.
+        shift_logits = logits[..., :-1, :].contiguous()
+        shift_labels = labels[..., 1:].contiguous()
+
+        # Flatten the tokens and apply cross-entropy loss
+        loss = F.cross_entropy(shift_logits.view(-1, shift_logits.size(-1)), shift_labels.view(-1))
+
+        return (loss, outputs) if return_outputs else loss
 
 
 class Trainer:
@@ -15,7 +41,7 @@ class Trainer:
 
         model = self.model.model
         processor = self.model.processor
-        self.trainer = SFTTrainer(
+        self.trainer = CustomSFTTrainer( # Use CustomSFTTrainer here
             model=model,
             train_dataset=self.data.dataset,
             processing_class=processor.tokenizer,

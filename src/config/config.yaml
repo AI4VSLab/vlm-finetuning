@@ -12,6 +12,10 @@ data:
 
 model:
   model_name: "unsloth/gemma-3-4b-pt"
+  prompt: |
+    You are a highly skilled ophthalmologist. Your task is to analyze Optical Coherence Tomography (OCT) images to determine the presence of Age-related Macular Degeneration (AMD) or if the image appears normal. Provide a concise explanation of your findings and a definitive diagnosis. Your output must strictly follow this format:
+    <explanation>[Your detailed but concise reasoning based on OCT findings]</explanation>
+    <diagnosis>[AMD or Normal]</diagnosis>
 
 trainer:
   num_epochs: 10
