@@ -1,6 +1,6 @@
 from algorithm import Trainer
 from algorithm import Evaluator
-from model import VisionLanguageModel
+from model import UnslothVLM, HuggingFaceVLM
 from data import OCTExpertData, OCTTestData
 
 import logging
@@ -36,7 +36,7 @@ def main(config: DictConfig) -> None:
     test_data = OCTTestData(config.data)
 
     # --- MODEL ---
-    model = VisionLanguageModel(config.model, device)
+    model = UnslothVLM(config.model, device)
 
     # --- ALGORITHM ---
     trainer = Trainer(train_data, model, config.trainer)

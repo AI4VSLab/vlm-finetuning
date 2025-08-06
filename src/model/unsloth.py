@@ -1,5 +1,6 @@
 from unsloth import FastVisionModel, get_chat_template
 from transformers import TextStreamer
+from unsloth.trainer import UnslothVisionDataCollator
 import logging
 
 logger = logging.getLogger(__name__)
@@ -43,7 +44,8 @@ class VisionLanguageModel:
 
         self.prompt = config.prompt
         self.model = model
-        self.processor = processor
+        self.processor = processor.tokenizer
+        self.data_collator = UnslothVisionDataCollator(model, processor)
         logger.info("Model created.")
 
     def train_mode(self):
@@ -56,7 +58,7 @@ class VisionLanguageModel:
         messages = [
             {
                 "role": "user",
-                "content": [{"type": "text", "text": self.instruction}, {"type": "image"}],
+                "content": [{"type": "text", "text": self.prompt}, {"type": "image"}],
             }
         ]
         input_text = self.processor.apply_chat_template(messages, add_generation_prompt=True)

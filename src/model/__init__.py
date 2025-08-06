@@ -1,3 +1,4 @@
-__all__ = ["VisionLanguageModel"]
+__all__ = ["UnslothVLM", "HuggingFaceVLM"]
 
-from model.model import VisionLanguageModel
+from model.unsloth import UnslothVLM
+from model.huggingface import HuggingFaceVLM

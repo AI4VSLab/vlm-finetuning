@@ -1,13 +1,12 @@
 import logging
 import torch.nn.functional as F
-from unsloth.trainer import UnslothVisionDataCollator
 from trl import SFTTrainer, SFTConfig
 
 logger = logging.getLogger(__name__)
 
 
 class CustomSFTTrainer(SFTTrainer):
-    def compute_loss(self, model, inputs, return_outputs=False):
+    def compute_loss(self, model, inputs, return_outputs=False, num_items_in_batch=None):
         # Forward pass through the model
         outputs = model(**inputs)
         # The SFTTrainer typically handles shifting of labels for language modeling
@@ -42,13 +41,11 @@ class Trainer:
 
         self.model.train_mode()
 
-        model = self.model.model
-        processor = self.model.processor
-        self.trainer = CustomSFTTrainer( # Use CustomSFTTrainer here
-            model=model,
+        self.trainer = SFTTrainer( # Use CustomSFTTrainer here
+            model=self.model.model,
             train_dataset=self.data.dataset,
-            processing_class=processor.tokenizer,
-            data_collator=UnslothVisionDataCollator(model, processor),
+            processing_class=self.model.processor,
+            data_collator= self.model.data_collator,
             args = SFTConfig(
                 per_device_train_batch_size = self.config.batch_size,
                 gradient_accumulation_steps = self.config.grad_accum_steps,
