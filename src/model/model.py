@@ -36,6 +36,11 @@ class VisionLanguageModel:
             ],
         )
 
+        processor = get_chat_template(
+            processor,
+            "gemma-3"
+        )
+
         self.prompt = config.prompt
         self.model = model
         self.processor = processor
@@ -51,7 +56,7 @@ class VisionLanguageModel:
         messages = [
             {
                 "role": "user",
-                "content": [{"type": "text", "text": self.prompt}, {"type": "image"}],
+                "content": [{"type": "text", "text": self.instruction}, {"type": "image"}],
             }
         ]
         input_text = self.processor.apply_chat_template(messages, add_generation_prompt=True)

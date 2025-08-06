@@ -17,6 +17,9 @@ class CustomSFTTrainer(SFTTrainer):
         # labels: (batch_size, sequence_length)
 
         # Get logits and labels from the model output
+        print("Inputs", inputs)
+        print("Outputs", outputs)
+
         logits = outputs.logits
         labels = inputs["labels"]
 
