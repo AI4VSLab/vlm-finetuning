@@ -1,6 +1,10 @@
 import logging
 import random
 from tqdm import tqdm
+from PIL import Image as PILImage
+import torch
+import numpy as np
+from torchvision import transforms
 import re # Import regex module
 
 logger = logging.getLogger(__name__)
@@ -28,7 +32,7 @@ class Evaluator:
             return None
 
         # Regex to find "Diagnosis: " followed by "AMD" or "Normal"
-        match = re.search(r"<diagnosis>\s*(AMD|Normal)<\diagnosis>", generated_text, re.IGNORECASE)
+        match = re.search(r"Diagnosis:\s*(AMD|Normal)", generated_text, re.IGNORECASE)
         if match:
             # Return the captured group, ensuring consistent casing (e.g., "AMD" or "Normal")
             return match.group(1).capitalize()
@@ -183,8 +187,8 @@ class Evaluator:
         """Runs all evaluation and sample generation steps."""
         logger.info("Starting evaluation and sample generation process...")
 
-        num_accuracy_samples = getattr(self.config, 'evaluation_num_samples', 50)
-        num_generation_samples = getattr(self.config, 'generation_num_samples', 5)
+        num_accuracy_samples = self.config.num_samples
+        num_generation_samples = 5
 
         self.evaluate_train_dataset(num_samples=num_accuracy_samples)
         self.generate_train_samples(num_samples=num_generation_samples)

@@ -1,4 +1,3 @@
-__all__ = ["UnslothVLM", "HuggingFaceVLM"]
+__all__ = ["UnslothVLM"]
 
 from model.unsloth import UnslothVLM
-from model.huggingface import HuggingFaceVLM

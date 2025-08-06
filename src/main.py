@@ -1,6 +1,6 @@
 from algorithm import Trainer
 from algorithm import Evaluator
-from model import UnslothVLM, HuggingFaceVLM
+from model import UnslothVLM
 from data import OCTExpertData, OCTTestData
 
 import logging
@@ -31,7 +31,7 @@ def main(config: DictConfig) -> None:
 
     # --- DATA ---
     # For training, use OCTExpertData
-    train_data = OCTExpertData(config.model.prompt, config.data)
+    train_data = OCTExpertData(config.data)
     # For testing and sample generation, use OCTTestData
     test_data = OCTTestData(config.data)
 

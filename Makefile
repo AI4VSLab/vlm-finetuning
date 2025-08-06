@@ -16,7 +16,7 @@ clean:
 	find . -name '__pycache__' -delete
 	rm -rf build dist src/*.egg-info
 	$(PYTHON) -m ruff clean
-	
+
 
 .PHONY: lint
 lint:
@@ -25,4 +25,3 @@ lint:
 .PHONY: format
 format:
 	$(PYTHON) -m ruff format .
-
