@@ -19,10 +19,8 @@ def setup(config):
     return device
 
 
-def cleanup(model, trainer):
-    del model
-    del trainer
-    torch.cuda.empty_cache()
+def cleanup():
+    pass
 
 
 @hydra.main(version_base=None, config_path="config", config_name="config")
@@ -33,7 +31,7 @@ def main(config: DictConfig) -> None:
 
     # --- DATA ---
     # For training, use OCTExpertData
-    train_data = OCTExpertData(config.model.prompt, config.data)
+    train_data = OCTExpertData(config.data)
     # For testing and sample generation, use OCTTestData
     test_data = OCTTestData(config.data)
 
@@ -48,7 +46,7 @@ def main(config: DictConfig) -> None:
     evaluator.run()
 
     # --- CLEANUP ---
-    cleanup(model, trainer)
+    cleanup()
 
 
 if __name__ == "__main__":
