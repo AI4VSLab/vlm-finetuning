@@ -13,6 +13,7 @@ class Evaluator:
     def __init__(self, model, train_data, test_data, config):
         self.config = config
         self.model = model
+        self.model.load()
         self.train_data = train_data # OCTExpertData for training samples
         self.test_data = test_data   # OCTTestData for test samples
         self.device = self.model.device # Get device from the model
@@ -190,11 +191,11 @@ class Evaluator:
         num_accuracy_samples = self.config.num_samples
         num_generation_samples = 5
 
-        self.evaluate_train_dataset(num_samples=num_accuracy_samples)
+        # self.evaluate_train_dataset(num_samples=num_accuracy_samples)
         self.generate_train_samples(num_samples=num_generation_samples)
         # Generate samples with text streamer after accuracy evaluation
 
-        self.evaluate_test_dataset(num_samples=num_accuracy_samples)
+        # self.evaluate_test_dataset(num_samples=num_accuracy_samples)
         self.generate_test_samples(num_samples=num_generation_samples)
         logger.info("Test dataset evaluation and sample generation completed.")
 

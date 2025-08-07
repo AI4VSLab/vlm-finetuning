@@ -52,4 +52,5 @@ class Trainer:
     def run(self):
         logger.info("Starting training...")
         self.trainer.train()
+        self.model.save()
         logger.info("Training completed.")
