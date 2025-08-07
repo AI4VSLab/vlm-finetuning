@@ -62,7 +62,6 @@ class Evaluator:
                     continue
 
                 logger.info(f"\n--- Train Sample {i+1}/{num_samples} (Original Index: {idx}) ---")
-                logger.info(f"True Diagnosis: {true_diagnosis_str}")
                 logger.info(f"True Explanation: {true_text}")
                 logger.info("Model Generated Output:")
 

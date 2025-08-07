@@ -15,12 +15,12 @@ class Trainer:
 
         args = SFTConfig(
             output_dir="gemma-product-description",     # directory to save and repository id
-            num_train_epochs=1,                         # number of training epochs
-            per_device_train_batch_size=1,              # batch size per device during training
-            gradient_accumulation_steps=4,              # number of steps before performing a backward/update pass
+            num_train_epochs=self.config.num_epochs,                         # number of training epochs
+            per_device_train_batch_size=self.config.batch_size,              # batch size per device during training
+            gradient_accumulation_steps=self.config.grad_accum_steps,              # number of steps before performing a backward/update pass
             gradient_checkpointing=True,                # use gradient checkpointing to save memory
             optim="adamw_torch_fused",                  # use fused adamw optimizer
-            logging_steps=5,                            # log every 5 steps
+            logging_steps=1,                            # log every 5 steps
             save_strategy="epoch",                      # save checkpoint every epoch
             learning_rate=2e-4,                         # learning rate, based on QLoRA paper
             bf16=True,                                  # use bfloat16 precision
