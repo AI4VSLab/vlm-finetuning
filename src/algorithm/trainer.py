@@ -1,5 +1,4 @@
 import logging
-from unsloth.trainer import UnslothVisionDataCollator
 from trl import SFTTrainer, SFTConfig
 
 logger = logging.getLogger(__name__)
@@ -28,8 +27,7 @@ class Trainer:
             max_grad_norm=0.3,                          # max gradient norm based on QLoRA paper
             warmup_ratio=0.03,                          # warmup ratio based on QLoRA paper
             lr_scheduler_type="constant",               # use constant learning rate scheduler
-            push_to_hub=True,                           # push model to hub
-            report_to="tensorboard",                    # report metrics to tensorboard
+            push_to_hub=False,                           # push model to hub                   # report metrics to tensorboard
             gradient_checkpointing_kwargs={
                 "use_reentrant": False
             },  # use reentrant checkpointing
@@ -39,13 +37,13 @@ class Trainer:
         args.remove_unused_columns = False # important for collator
 
 
-    self.trainer = SFTTrainer(
-        model=self.model.model,
-        args=args,
-        train_dataset=self.data.dataset,
-        processing_class=self.model.processor,
-        data_collator=self.model.data_collator,
-    )
+        self.trainer = SFTTrainer(
+            model=self.model.model,
+            args=args,
+            train_dataset=self.data.dataset,
+            processing_class=self.model.processor,
+            data_collator=self.model.data_collator,
+        )
 
     def run(self):
         logger.info("Starting training...")
