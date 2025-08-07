@@ -38,8 +38,7 @@ class VisionLanguageModel:
 
         self.instruction = """You are a highly skilled AI assistant specializing in ophthalmic diagnostics. Your task is to analyze Optical Coherence Tomography (OCT) images to determine the presence of Age-related Macular Degeneration (AMD) or if the image appears normal. Provide a concise explanation of your findings and a definitive diagnosis.
         Your output must strictly follow this format:
-        <explanation>[Your detailed but concise reasoning based on OCT findings]</explanation>
-        <diagnosis>[AMD or Normal]</diagnosis>
+        <explanation>[Your detailed but concise reasoning based on OCT findings]</explanation> <diagnosis>[AMD or Normal]</diagnosis>
         """
 
         processor = get_chat_template(
@@ -56,6 +55,16 @@ class VisionLanguageModel:
 
     def inference_mode(self):
         FastVisionModel.for_inference(self.model)
+
+    def save(self):
+        self.model.save_pretrained("finetuned_model")
+        self.processor.save_pretrained("finetuned_model")
+
+    def load(self):
+        self.model, self.processor = FastVisionModel.from_pretrained(
+                model_name="lora_model",  # YOUR MODEL YOU USED FOR TRAINING
+                load_in_4bit=True,  # Set to False for 16bit LoRA
+            )
 
     def generate(self, image, use_streamer=True):
         messages = [

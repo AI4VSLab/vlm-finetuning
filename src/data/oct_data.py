@@ -40,8 +40,7 @@ class OCTExpertData:
 
         self.prompt = """You are a highly skilled AI assistant specializing in ophthalmic diagnostics. Your task is to analyze Optical Coherence Tomography (OCT) images to determine the presence of Age-related Macular Degeneration (AMD) or if the image appears normal. Provide a concise explanation of your findings and a definitive diagnosis.
         Your output must strictly follow this format:
-        <explanation>[Your detailed but concise reasoning based on OCT findings]</explanation>
-        <diagnosis>[AMD or Normal]</diagnosis>
+        <explanation>[Your detailed but concise reasoning based on OCT findings]</explanation> <diagnosis>[AMD or Normal]</diagnosis>
         """
         # Create the processed dataset with conversation format
         self.processed_dataset = [self._convert_to_conversation(sample) for sample in self.tfrecord_dataset]
@@ -94,6 +93,6 @@ class OCTExpertData:
                     {"type": "image", "image": sample["image"]},
                 ],
             },
-            {"role": "assistant", "content": [{"type": "text", "text": ("<explanation>" + sample["text"]+"</explanation>\n<diagnosis>" + sample["label"] +"</diagnosis>")}]},
+            {"role": "assistant", "content": [{"type": "text", "text": ("<explanation>" + sample["text"]+"</explanation> <diagnosis>" + ("AMD" if sample['label'] else "Normal") +"</diagnosis>")}]},
         ]
         return {"messages": conversation}
