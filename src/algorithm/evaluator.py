@@ -32,7 +32,7 @@ class Evaluator:
             return None
 
         # Regex to find "Diagnosis: " followed by "AMD" or "Normal"
-        match = re.search(r"Diagnosis:\s*(AMD|Normal)", generated_text, re.IGNORECASE)
+        match = re.search(r"<diagnosis>\s*(AMD|Normal)</diagnosis>", generated_text, re.IGNORECASE)
         if match:
             # Return the captured group, ensuring consistent casing (e.g., "AMD" or "Normal")
             return match.group(1).capitalize()

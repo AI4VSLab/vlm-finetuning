@@ -38,8 +38,8 @@ class VisionLanguageModel:
 
         self.instruction = """You are a highly skilled AI assistant specializing in ophthalmic diagnostics. Your task is to analyze Optical Coherence Tomography (OCT) images to determine the presence of Age-related Macular Degeneration (AMD) or if the image appears normal. Provide a concise explanation of your findings and a definitive diagnosis.
         Your output must strictly follow this format:
-        Explanation: [Your detailed but concise reasoning based on OCT findings]
-        Diagnosis: [AMD or Normal]
+        <explanation>[Your detailed but concise reasoning based on OCT findings]</explanation>
+        <diagnosis>[AMD or Normal]</diagnosis>
         """
 
         processor = get_chat_template(

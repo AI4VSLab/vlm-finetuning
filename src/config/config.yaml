@@ -11,7 +11,7 @@ data:
   test_path: /content/OCT_test_dataset
 
 model:
-  model_name: "unsloth/gemma-3-4b-pt"
+  model_name: unsloth/gemma-3-4b-pt
 
 trainer:
   num_epochs: 10
