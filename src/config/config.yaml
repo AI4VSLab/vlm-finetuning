@@ -11,7 +11,8 @@ data:
   test_path: /content/OCT_test_dataset
 
 model:
-  model_id: google/gemma-3-4b-pt
+  model_name: unsloth/gemma-3-4b-pt
+  chat_template: gemma-3
   prompt: You are a highly skilled AI assistant specializing in ophthalmic diagnostics. Your task is to analyze Optical Coherence Tomography (OCT) images to determine the presence of Age-related Macular Degeneration (AMD) or if the image appears normal. Provide a concise explanation of your findings.
 
 trainer:

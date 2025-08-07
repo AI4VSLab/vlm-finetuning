@@ -14,7 +14,7 @@ class VisionLanguageModel:
         self.device = device
 
         # Hugging Face model id
-        model_id = config.model_id # or `google/gemma-3-12b-pt`, `google/gemma-3-27-pt`
+        model_id = "google/gemma-3-4b-pt" # or `google/gemma-3-12b-pt`, `google/gemma-3-27-pt`
 
         # Check if GPU benefits from bfloat16
         if torch.cuda.get_device_capability()[0] < 8:
