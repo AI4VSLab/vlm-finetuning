@@ -1,5 +1,4 @@
 import logging
-from unsloth.trainer import UnslothVisionDataCollator
 from trl import SFTTrainer, SFTConfig
 
 logger = logging.getLogger(__name__)
@@ -14,12 +13,13 @@ class Trainer:
         self.model.train_mode()
 
         model = self.model.model
-        processor = self.model.processor
+        processing_class = self.model.processing_class
+        data_collator = self.model.data_collator
         self.trainer = SFTTrainer(
             model=model,
             train_dataset=self.data.dataset,
-            processing_class=processor.tokenizer,
-            data_collator=UnslothVisionDataCollator(model, processor),
+            processing_class=processing_class,
+            data_collator=data_collator,
             args = SFTConfig(
                 per_device_train_batch_size = self.config.batch_size,
                 gradient_accumulation_steps = self.config.grad_accum_steps,

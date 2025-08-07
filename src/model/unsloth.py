@@ -1,4 +1,5 @@
 from unsloth import FastVisionModel, get_chat_template
+from unsloth.trainer import UnslothVisionDataCollator
 from transformers import TextStreamer
 import logging
 
@@ -49,6 +50,8 @@ class UnslothVLM:
 
         self.model = model
         self.processor = processor
+        self.processing_class = processor.tokenizer
+        self.data_collator = UnslothVisionDataCollator(model, processor)
         logger.info("Model created.")
 
     def train_mode(self):
