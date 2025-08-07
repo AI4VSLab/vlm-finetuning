@@ -1,5 +1,7 @@
-from unsloth import FastVisionModel, get_chat_template
-from transformers import TextStreamer
+import torch
+from data import DataCollator
+from transformers import AutoProcessor, AutoModelForImageTextToText, BitsAndBytesConfig, TextStreamer
+from peft import LoraConfig, get_peft_model
 import logging
 
 logger = logging.getLogger(__name__)
@@ -10,48 +12,60 @@ class VisionLanguageModel:
         logger.info("Creating model...")
         self.config = config
         self.device = device
-        model, processor = FastVisionModel.from_pretrained(
-            self.config.model_name,
-            load_in_4bit = True, # Use 4bit to reduce memory use. False for 16bit LoRA.
-            use_gradient_checkpointing = "unsloth", # True or "unsloth" for long context
-        )
-        model = FastVisionModel.get_peft_model(
-            model,
-            finetune_vision_layers     = True, # False if not finetuning vision layers
-            finetune_language_layers   = True, # False if not finetuning language layers
-            finetune_attention_modules = True, # False if not finetuning attention layers
-            finetune_mlp_modules       = True, # False if not finetuning MLP layers
 
-            r = 16,                           # The larger, the higher the accuracy, but might overfit
-            lora_alpha = 16,                  # Recommended alpha == r at least
-            lora_dropout = 0,
-            bias = "none",
-            random_state = 3407,
-            use_rslora = False,               # We support rank stabilized LoRA
-            loftq_config = None,               # And LoftQ
-            target_modules = "all-linear",    # Optional now! Can specify a list if needed
+        # Hugging Face model id
+        model_id = "google/gemma-3-4b-pt" # or `google/gemma-3-12b-pt`, `google/gemma-3-27-pt`
+
+        # Check if GPU benefits from bfloat16
+        if torch.cuda.get_device_capability()[0] < 8:
+            raise ValueError("GPU does not support bfloat16, please use a GPU that supports bfloat16.")
+
+        # Define model init arguments
+        model_kwargs = dict(
+            attn_implementation="eager", # Use "flash_attention_2" when running on Ampere or newer GPU
+            torch_dtype=torch.bfloat16, # What torch dtype to use, defaults to auto
+            device_map="auto", # Let torch decide how to load the model
+        )
+
+        # BitsAndBytesConfig int-4 config
+        model_kwargs["quantization_config"] = BitsAndBytesConfig(
+            load_in_4bit=True,
+            bnb_4bit_use_double_quant=True,
+            bnb_4bit_quant_type="nf4",
+            bnb_4bit_compute_dtype=model_kwargs["torch_dtype"],
+            bnb_4bit_quant_storage=model_kwargs["torch_dtype"],
+        )
+
+        # Load model and tokenizer
+        model = AutoModelForImageTextToText.from_pretrained(model_id, **model_kwargs)
+        processor = AutoProcessor.from_pretrained("google/gemma-3-4b-it")
+
+        peft_config = LoraConfig(
+            lora_alpha=16,
+            lora_dropout=0.05,
+            r=16,
+            bias="none",
+            target_modules="all-linear",
+            task_type="CAUSAL_LM",
             modules_to_save=[
                 "lm_head",
                 "embed_tokens",
             ],
         )
+        peft_model = get_peft_model(model, peft_config)
 
         self.prompt = config.prompt
-
-        processor = get_chat_template(
-            processor,
-            config.chat_template
-        )
-
-        self.model = model
+        self.model = peft_model
         self.processor = processor
+        self.data_collator = DataCollator(self.processor)
+
         logger.info("Model created.")
 
     def train_mode(self):
-        FastVisionModel.for_training(self.model)
+        self.model.train()
 
     def inference_mode(self):
-        FastVisionModel.for_inference(self.model)
+        self.model.eval()
 
     def generate(self, image, use_streamer=True):
         messages = [

@@ -1,6 +1,6 @@
 from algorithm import Trainer
 from algorithm import Evaluator
-from model import UnslothVLM
+from model import VisionLanguageModel
 from data import OCTExpertData, OCTTestData
 
 import logging
@@ -19,8 +19,10 @@ def setup(config):
     return device
 
 
-def cleanup():
-    pass
+def cleanup(model, trainer):
+    del model
+    del trainer
+    torch.cuda.empty_cache()
 
 
 @hydra.main(version_base=None, config_path="config", config_name="config")
@@ -36,7 +38,7 @@ def main(config: DictConfig) -> None:
     test_data = OCTTestData(config.data)
 
     # --- MODEL ---
-    model = UnslothVLM(config.model, device)
+    model = VisionLanguageModel(config.model, device)
 
     # --- ALGORITHM ---
     trainer = Trainer(train_data, model, config.trainer)
@@ -46,7 +48,7 @@ def main(config: DictConfig) -> None:
     evaluator.run()
 
     # --- CLEANUP ---
-    cleanup()
+    cleanup(model, trainer)
 
 
 if __name__ == "__main__":

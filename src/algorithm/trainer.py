@@ -13,14 +13,11 @@ class Trainer:
 
         self.model.train_mode()
 
-        model = self.model.model
-        processor = self.model.processor
-
         self.trainer = SFTTrainer(
-            model=model,
+            model=self.model.model,
             train_dataset=self.data.dataset,
-            processing_class=processor.tokenizer,
-            data_collator=UnslothVisionDataCollator(model, processor),
+            processing_class=self.model.processor,
+            data_collator=self.model.data_collator,
             args = SFTConfig(
                 per_device_train_batch_size = self.config.batch_size,
                 gradient_accumulation_steps = self.config.grad_accum_steps,
@@ -54,3 +51,5 @@ class Trainer:
         logger.info("Starting training...")
         self.trainer.train()
         logger.info("Training completed.")
+        self.trainer.save_model()
+        logger.info("Model Saved.")
