@@ -31,7 +31,7 @@ def main(config: DictConfig) -> None:
 
     # --- DATA ---
     # For training, use OCTExpertData
-    train_data = OCTExpertData(config.data)
+    train_data = OCTExpertData(config.model.prompt, config.data)
     # For testing and sample generation, use OCTTestData
     test_data = OCTTestData(config.data)
 

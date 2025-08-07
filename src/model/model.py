@@ -1,12 +1,11 @@
 from unsloth import FastVisionModel, get_chat_template
-from unsloth.trainer import UnslothVisionDataCollator
 from transformers import TextStreamer
 import logging
 
 logger = logging.getLogger(__name__)
 
 
-class UnslothVLM:
+class VisionLanguageModel:
     def __init__(self, config, device):
         logger.info("Creating model...")
         self.config = config
@@ -37,21 +36,15 @@ class UnslothVLM:
             ],
         )
 
-        self.instruction = """You are a highly skilled AI assistant specializing in ophthalmic diagnostics. Your task is to analyze Optical Coherence Tomography (OCT) images to determine the presence of Age-related Macular Degeneration (AMD) or if the image appears normal. Provide a concise explanation of your findings and a definitive diagnosis.
-        Your output must strictly follow this format:
-        Explanation: [Your detailed but concise reasoning based on OCT findings]
-        Diagnosis: [AMD or Normal]
-        """
+        self.prompt = config.prompt
 
         processor = get_chat_template(
             processor,
-            "gemma-3"
+            config.chat_template
         )
 
         self.model = model
         self.processor = processor
-        self.processing_class = processor.tokenizer
-        self.data_collator = UnslothVisionDataCollator(model, processor)
         logger.info("Model created.")
 
     def train_mode(self):
@@ -64,7 +57,7 @@ class UnslothVLM:
         messages = [
             {
                 "role": "user",
-                "content": [{"type": "text", "text": self.instruction}, {"type": "image"}],
+                "content": [{"type": "text", "text": self.prompt}, {"type": "image"}],
             }
         ]
         input_text = self.processor.apply_chat_template(messages, add_generation_prompt=True)
