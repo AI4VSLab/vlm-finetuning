@@ -17,9 +17,9 @@ model:
     <explanation>[Your detailed but concise reasoning based on OCT findings]</explanation> <diagnosis>[AMD or Normal]</diagnosis>
 
 trainer:
-  num_epochs: 20
-  batch_size: 2
-  grad_accum_steps: 4
+  num_epochs: 5
+  batch_size: 8
+  grad_accum_steps: 1
   learning_rate: 2e-5
 
 evaluator:
