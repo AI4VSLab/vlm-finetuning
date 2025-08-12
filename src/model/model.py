@@ -1,4 +1,4 @@
-from unsloth import FastVisionModel, get_chat_template
+from unsloth import FastVisionModel
 from transformers import TextStreamer
 import logging
 
@@ -36,8 +36,8 @@ class VisionLanguageModel:
                 finetune_attention_modules = True, # False if not finetuning attention layers
                 finetune_mlp_modules       = True, # False if not finetuning MLP layers
 
-                r = 16,                           # The larger, the higher the accuracy, but might overfit
-                lora_alpha = 16,                  # Recommended alpha == r at least
+                r = 8,                           # The larger, the higher the accuracy, but might overfit
+                lora_alpha = 8,                  # Recommended alpha == r at least
                 lora_dropout = 0,
                 bias = "none",
                 random_state = 3407,
