@@ -1,11 +1,7 @@
 import logging
 import random
 from tqdm import tqdm
-from PIL import Image as PILImage
-import torch
-import numpy as np
-from torchvision import transforms
-import re # Import regex module
+import re
 
 logger = logging.getLogger(__name__)
 
@@ -13,14 +9,11 @@ class Evaluator:
     def __init__(self, model, train_data, test_data, config):
         self.config = config
         self.model = model
-        self.model.load()
-        self.train_data = train_data # OCTExpertData for training samples
+        self.train_data = train_data # OCTTrainData for training samples
         self.test_data = test_data   # OCTTestData for test samples
-        self.device = self.model.device # Get device from the model
 
         # Set model to inference mode
         self.model.inference_mode()
-
         logger.info("Evaluator initialized for evaluation and sample generation.")
 
     def _extract_diagnosis(self, generated_text: str) -> str | None:
@@ -33,7 +26,7 @@ class Evaluator:
             return None
 
         # Regex to find "Diagnosis: " followed by "AMD" or "Normal"
-        match = re.search(r"<diagnosis>\s*(AMD|Normal)</diagnosis>", generated_text, re.IGNORECASE)
+        match = re.search(r"<diagnosis>\s*(AMD|Normal)\s*</diagnosis>", generated_text, re.IGNORECASE)
         if match:
             # Return the captured group, ensuring consistent casing (e.g., "AMD" or "Normal")
             return match.group(1).capitalize()
