@@ -3,20 +3,24 @@ hydra:
     root:
       level: INFO
 
-system:
-  device: cuda
-
 data:
   train_path: /content/VQA.tfrecord
   test_path: /content/OCT_test_dataset
 
 model:
-  model_name: unsloth/gemma-3-4b-pt
+  from_checkpoint: False
+  name: unsloth/gemma-3-4b-it
+  path: /content/models/unsloth
+  prompt: |
+    You are a highly skilled AI assistant specializing in ophthalmic diagnostics. Your task is to analyze Optical Coherence Tomography (OCT) images to determine the presence of Age-related Macular Degeneration (AMD) or if the image appears normal. Provide a concise explanation of your findings and a definitive diagnosis.
+    Your output must strictly follow this format:
+    <explanation>[Your detailed but concise reasoning based on OCT findings]</explanation> <diagnosis>[AMD or Normal]</diagnosis>
 
 trainer:
-  num_epochs: 10
-  batch_size: 8
-  grad_accum_steps: 1
+  num_epochs: 3
+  batch_size: 2
+  grad_accum_steps: 8
+  learning_rate: 2e-4
 
 evaluator:
   num_samples: 50

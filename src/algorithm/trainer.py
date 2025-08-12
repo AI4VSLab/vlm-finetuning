@@ -15,6 +15,7 @@ class Trainer:
 
         model = self.model.model
         processor = self.model.processor
+
         self.trainer = SFTTrainer(
             model=model,
             train_dataset=self.data.dataset,
@@ -31,7 +32,7 @@ class Trainer:
                 warmup_ratio = 0.03,
                 #max_steps = 30,
                 num_train_epochs = self.config.num_epochs,          # Set this instead of max_steps for full training runs
-                learning_rate = 2e-4,
+                learning_rate = self.config.learning_rate,
                 logging_steps = 1,
                 save_strategy="steps",
                 optim = "adamw_torch_fused",

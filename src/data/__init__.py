@@ -1,4 +1,4 @@
-__all__ = ["OCTExpertData", "OCTTestData"]
+__all__ = ["OCTTrainData", "OCTTestData"]
 
-from data.oct_data import OCTExpertData
+from data.train_data import OCTTrainData
 from data.test_data import OCTTestData

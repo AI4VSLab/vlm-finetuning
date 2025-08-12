@@ -11,10 +11,11 @@ IMAGE_HEIGHT = 703
 IMAGE_WIDTH = 1055
 IMAGE_CHANNELS = 3
 
-class OCTExpertData:
-    def __init__(self, config):
+class OCTTrainData:
+    def __init__(self, prompt, config):
         logger.info("Loading OCTExpert data...")
         self.config = config
+        self.prompt = prompt
 
         # Initialize the tokenizer for text processing
         self.tokenizer = AutoTokenizer.from_pretrained("google-t5/t5-base")
@@ -38,10 +39,6 @@ class OCTExpertData:
             transform=self._preprocess_sample
         )
 
-        self.prompt = """You are a highly skilled AI assistant specializing in ophthalmic diagnostics. Your task is to analyze Optical Coherence Tomography (OCT) images to determine the presence of Age-related Macular Degeneration (AMD) or if the image appears normal. Provide a concise explanation of your findings and a definitive diagnosis.
-        Your output must strictly follow this format:
-        <explanation>[Your detailed but concise reasoning based on OCT findings]</explanation> <diagnosis>[AMD or Normal]</diagnosis>
-        """
         # Create the processed dataset with conversation format
         self.processed_dataset = [self._convert_to_conversation(sample) for sample in self.tfrecord_dataset]
 

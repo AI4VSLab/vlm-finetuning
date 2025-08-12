@@ -1,7 +1,7 @@
 from algorithm import Trainer
 from algorithm import Evaluator
 from model import VisionLanguageModel
-from data import OCTExpertData, OCTTestData
+from data import OCTTrainData, OCTTestData
 
 import logging
 import torch
@@ -11,12 +11,9 @@ from omegaconf import DictConfig
 logger = logging.getLogger(__name__)
 
 
-def setup(config):
+def setup():
     """Set up the environment."""
     torch.manual_seed(42)
-    device = torch.device(config.device)
-    logger.info(f"Device: {device}")
-    return device
 
 
 def cleanup():
@@ -27,16 +24,16 @@ def cleanup():
 def main(config: DictConfig) -> None:
     """Main function to run the training pipeline."""
     # --- SETUP ---
-    device = setup(config.system)
+    setup()
 
     # --- DATA ---
     # For training, use OCTExpertData
-    train_data = OCTExpertData(config.data)
+    train_data = OCTTrainData(config.model.prompt, config.data)
     # For testing and sample generation, use OCTTestData
     test_data = OCTTestData(config.data)
 
     # --- MODEL ---
-    model = VisionLanguageModel(config.model, device)
+    model = VisionLanguageModel(config.model)
 
     # --- ALGORITHM ---
     trainer = Trainer(train_data, model, config.trainer)
