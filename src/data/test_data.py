@@ -1,7 +1,8 @@
 import logging
-from torchvision import datasets, transforms
+from torchvision import datasets
 
 logger = logging.getLogger(__name__)
+
 
 class OCTTestData:
     def __init__(self, config):

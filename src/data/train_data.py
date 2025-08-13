@@ -12,6 +12,7 @@ IMAGE_HEIGHT = 703
 IMAGE_WIDTH = 1055
 IMAGE_CHANNELS = 3
 
+
 class OCTTrainData:
     def __init__(self, prompt, config):
         logger.info("Loading OCTExpert data...")
@@ -21,31 +22,33 @@ class OCTTrainData:
         # Initialize the tokenizer for text processing
         self.tokenizer = AutoTokenizer.from_pretrained("google-t5/t5-base")
 
-        self.augmentations = transforms.Compose([
-            # 1. Flip the image horizontally. This is the most effective augmentation.
-            transforms.RandomHorizontalFlip(p=0.5),
-
-            # 2. Apply a set of random geometric transformations.
-            transforms.RandomAffine(
-                degrees=10,         # Rotate by +/- 10 degrees
-                translate=(0.05, 0.05), # Shift horizontally and vertically by up to 5%
-                scale=(0.95, 1.05)    # Zoom in/out by up to 5%
-            ),
-
-            # 3. Adjust brightness and contrast to simulate different scanner settings.
-            transforms.ColorJitter(brightness=0.2, contrast=0.2),
-
-            # 4. Randomly erase a small patch to make the model more robust.
-            # transforms.RandomErasing(p=0.5, scale=(0.02, 0.04), ratio=(0.3, 3.3)),
-        ])
+        self.augmentations = transforms.Compose(
+            [
+                # 1. Flip the image horizontally. This is the most effective augmentation.
+                transforms.RandomHorizontalFlip(p=0.5),
+                # 2. Apply a set of random geometric transformations.
+                transforms.RandomAffine(
+                    degrees=10,  # Rotate by +/- 10 degrees
+                    translate=(
+                        0.05,
+                        0.05,
+                    ),  # Shift horizontally and vertically by up to 5%
+                    scale=(0.95, 1.05),  # Zoom in/out by up to 5%
+                ),
+                # 3. Adjust brightness and contrast to simulate different scanner settings.
+                transforms.ColorJitter(brightness=0.2, contrast=0.2),
+                # 4. Randomly erase a small patch to make the model more robust.
+                # transforms.RandomErasing(p=0.5, scale=(0.02, 0.04), ratio=(0.3, 3.3)),
+            ]
+        )
 
         # Define the TFRecord schema description. This must match how the TFRecord
         # files were generated.
         tfrecord_description = {
-            "input_ids": "int",        # Tokenized text input IDs
-            "attn_mask": "int",        # Attention mask for text
-            "class": "byte",           # Class label (e.g., 'n' for normal, 'a' for AMD)
-            "normalized_image": "byte" # Raw image bytes (float32, flattened)
+            "input_ids": "int",  # Tokenized text input IDs
+            "attn_mask": "int",  # Attention mask for text
+            "class": "byte",  # Class label (e.g., 'n' for normal, 'a' for AMD)
+            "normalized_image": "byte",  # Raw image bytes (float32, flattened)
         }
 
         logger.info(f"Train TFRecord path: {self.config.train_path}")
@@ -55,11 +58,13 @@ class OCTTrainData:
             self.config.train_path,
             None,
             tfrecord_description,
-            transform=self._preprocess_sample
+            transform=self._preprocess_sample,
         )
 
         # Create the processed dataset with conversation format
-        self.processed_dataset = [self._convert_to_conversation(sample) for sample in self.tfrecord_dataset]
+        self.processed_dataset = [
+            self._convert_to_conversation(sample) for sample in self.tfrecord_dataset
+        ]
 
         # For compatibility with Trainer/Evaluator, self.dataset points to the conversation-formatted data
         self.dataset = self.processed_dataset
@@ -79,24 +84,26 @@ class OCTTrainData:
         # Scale the float image data to the [0, 255] range and convert to uint8
         min_val = np.min(image)
         max_val = np.max(image)
-        if max_val - min_val > 1e-5: # Avoid division by zero
+        if max_val - min_val > 1e-5:  # Avoid division by zero
             image = 255.0 * (image - min_val) / (max_val - min_val)
         else:
-            image = np.zeros_like(image) # If all pixels are same, create a black image
+            image = np.zeros_like(image)  # If all pixels are same, create a black image
 
         image = image.astype(np.uint8)
         image = PILImage.fromarray(image)
-        new_sample["images"] = self.augmentations(image)
+        new_sample["image"] = self.augmentations(image)
 
         # 2. Text Decoding: Convert input_ids and attention_mask back to text
         input_ids = torch.tensor(sample["input_ids"], dtype=torch.long)
         attn_mask = torch.tensor(sample["attn_mask"], dtype=torch.long)
-        decoded_text = self.tokenizer.decode(input_ids, attention_mask=attn_mask, skip_special_tokens=True)
+        decoded_text = self.tokenizer.decode(
+            input_ids, attention_mask=attn_mask, skip_special_tokens=True
+        )
         new_sample["text"] = decoded_text
 
         # 3. Label Processing: Convert byte string label to integer (0 or 1)
-        class_str = sample["class"].decode('utf-8')
-        label = 0 if class_str == 'n' else 1 # 'n' for normal (0), 'a' for AMD (1)
+        class_str = sample["class"].decode("utf-8")
+        label = 0 if class_str == "n" else 1  # 'n' for normal (0), 'a' for AMD (1)
         new_sample["label"] = label
 
         return new_sample
@@ -110,6 +117,20 @@ class OCTTrainData:
                     {"type": "image", "image": sample["image"]},
                 ],
             },
-            {"role": "assistant", "content": [{"type": "text", "text": ("<explanation>" + sample["text"]+"</explanation> <diagnosis>" + ("AMD" if sample['label'] else "Normal") +"</diagnosis>")}]},
+            {
+                "role": "assistant",
+                "content": [
+                    {
+                        "type": "text",
+                        "text": (
+                            "<explanation>"
+                            + sample["text"]
+                            + "</explanation> <diagnosis>"
+                            + ("AMD" if sample["label"] else "Normal")
+                            + "</diagnosis>"
+                        ),
+                    }
+                ],
+            },
         ]
         return {"messages": conversation}

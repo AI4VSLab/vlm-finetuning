@@ -9,7 +9,7 @@ data:
 
 model:
   from_checkpoint: False
-  name: unsloth/gemma-3-4b-it
+  name: unsloth/gemma-3-4b-it-unsloth-bnb-4bit
   path: /content/models/unsloth/gemma3-4b-it-finetuned
   prompt: |
     You are a highly skilled AI assistant specializing in ophthalmic diagnostics. Your task is to analyze Optical Coherence Tomography (OCT) images to determine the presence of Age-related Macular Degeneration (AMD) or if the image appears normal. Provide a concise explanation of your findings and a definitive diagnosis.
@@ -17,7 +17,7 @@ model:
     <explanation>[Your detailed but concise reasoning based on OCT findings]</explanation> <diagnosis>[AMD or Normal]</diagnosis>
 
 trainer:
-  num_epochs: 20
+  num_epochs: 15
   batch_size: 4
   grad_accum_steps: 1
   learning_rate: 2e-5

@@ -17,6 +17,9 @@ dependencies = [
     "numpy~=2.3",
     "transformers~=4.54",
     "unsloth~=2025.7",
+    "evaluate",
+    "rouge_score",
+    "nltk",
 ]
 
 [dependency-groups]
