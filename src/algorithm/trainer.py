@@ -32,7 +32,7 @@ class Trainer:
                 # max_steps = 30,
                 num_train_epochs=self.config.num_epochs,  # Set this instead of max_steps for full training runs
                 learning_rate=self.config.learning_rate,
-                logging_steps=1,
+                logging_steps=self.config.logging_steps,
                 save_strategy="steps",
                 optim="adamw_torch_fused",
                 weight_decay=0.01,
