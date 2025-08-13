@@ -3,6 +3,7 @@ import torch
 import numpy as np
 from PIL import Image as PILImage
 from transformers import AutoTokenizer
+from torchvision import transforms
 from tfrecord.torch.dataset import TFRecordDataset
 
 logger = logging.getLogger(__name__)
@@ -19,6 +20,24 @@ class OCTTrainData:
 
         # Initialize the tokenizer for text processing
         self.tokenizer = AutoTokenizer.from_pretrained("google-t5/t5-base")
+
+        self.augmentations = transforms.Compose([
+            # 1. Flip the image horizontally. This is the most effective augmentation.
+            transforms.RandomHorizontalFlip(p=0.5),
+
+            # 2. Apply a set of random geometric transformations.
+            transforms.RandomAffine(
+                degrees=10,         # Rotate by +/- 10 degrees
+                translate=(0.05, 0.05), # Shift horizontally and vertically by up to 5%
+                scale=(0.95, 1.05)    # Zoom in/out by up to 5%
+            ),
+
+            # 3. Adjust brightness and contrast to simulate different scanner settings.
+            transforms.ColorJitter(brightness=0.2, contrast=0.2),
+
+            # 4. Randomly erase a small patch to make the model more robust.
+            # transforms.RandomErasing(p=0.5, scale=(0.02, 0.04), ratio=(0.3, 3.3)),
+        ])
 
         # Define the TFRecord schema description. This must match how the TFRecord
         # files were generated.
@@ -66,7 +85,8 @@ class OCTTrainData:
             image = np.zeros_like(image) # If all pixels are same, create a black image
 
         image = image.astype(np.uint8)
-        new_sample["image"] = PILImage.fromarray(image)
+        image = PILImage.fromarray(image)
+        new_sample["images"] = self.augmentations(image)
 
         # 2. Text Decoding: Convert input_ids and attention_mask back to text
         input_ids = torch.tensor(sample["input_ids"], dtype=torch.long)
