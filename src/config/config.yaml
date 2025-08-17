@@ -21,4 +21,5 @@ trainer:
   logging_steps: 5
 
 evaluator:
-  num_samples: 20
+  eval_samples: 20
+  gen_samples: 5

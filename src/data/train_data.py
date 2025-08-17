@@ -15,7 +15,6 @@ IMAGE_CHANNELS = 3
 
 class OCTTrainData:
     def __init__(self, prompt, config):
-        logger.info("Loading OCTExpert data...")
         self.config = config
         self.prompt = prompt
 
@@ -68,7 +67,8 @@ class OCTTrainData:
 
         # For compatibility with Trainer/Evaluator, self.dataset points to the conversation-formatted data
         self.dataset = self.processed_dataset
-        logger.info("OCTExpert data initialized.")
+
+        logger.info(f"Train dataset loaded with {len(self.dataset)} images")
 
     def _preprocess_sample(self, sample):
         new_sample = {}
@@ -122,13 +122,7 @@ class OCTTrainData:
                 "content": [
                     {
                         "type": "text",
-                        "text": (
-                            "<explanation>"
-                            + sample["text"]
-                            + "</explanation> <diagnosis>"
-                            + ("AMD" if sample["label"] else "Normal")
-                            + "</diagnosis>"
-                        ),
+                        "text": sample["text"],
                     }
                 ],
             },

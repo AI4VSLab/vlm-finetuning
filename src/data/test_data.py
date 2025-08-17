@@ -9,6 +9,6 @@ class OCTTestData:
         self.config = config
         self.dataset = datasets.ImageFolder(root=self.config.test_path)
 
-        logger.info(f"Dataset loaded with {len(self.dataset)} images.")
+        logger.info(f"Test Dataset loaded with {len(self.dataset)} images.")
         logger.info(f"Found classes: {self.dataset.classes}")
         logger.info(f"Class to index mapping: {self.dataset.class_to_idx}")
