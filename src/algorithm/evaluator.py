@@ -8,11 +8,12 @@ logger = logging.getLogger(__name__)
 
 
 class Evaluator:
-    def __init__(self, model, train_data, test_data, config):
+    def __init__(self, model, data, config):
         self.config = config
         self.model = model
-        self.train_data = train_data  # OCTTrainData for training samples
-        self.test_data = test_data  # OCTTestData for test samples
+        self.data = data
+        self.train_data = data.train_data  # OCTTrainData for training samples
+        self.test_data = data.test_data  # OCTTestData for test samples
 
         logger.info("Loading text generation metrics (BLEU, METEOR, ROUGE)...")
         try:
@@ -75,7 +76,7 @@ class Evaluator:
             f"Generating {num_samples} sample images from the training dataset..."
         )
 
-        all_train_samples = list(self.train_data.tfrecord_dataset)
+        all_train_samples = list(self.train_data.dataset)
         sample_indices = random.sample(
             range(len(all_train_samples)), min(num_samples, len(all_train_samples))
         )

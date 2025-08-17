@@ -9,7 +9,7 @@ class Trainer:
     def __init__(self, data, model, config):
         self.config = config
         self.model = model
-        self.data = data
+        self.data = data.train_data
 
         self.model.train_mode()
 

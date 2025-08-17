@@ -1,7 +1,6 @@
 import logging
 import torch
-import numpy as np
-from PIL import Image as PILImage
+from torch.utils.data import Dataset
 from transformers import AutoTokenizer
 from torchvision import transforms
 from tfrecord.torch.dataset import TFRecordDataset
@@ -13,9 +12,8 @@ IMAGE_WIDTH = 1055
 IMAGE_CHANNELS = 3
 
 
-class OCTTranscriptData:
-    def __init__(self, prompt, config):
-        self.config = config
+class OCTTranscriptDataset(Dataset):
+    def __init__(self, path, prompt):
         self.prompt = prompt
 
         # Initialize the tokenizer for text processing
@@ -56,57 +54,37 @@ class OCTTranscriptData:
             "normalized_image": "byte",  # Raw image bytes (float32, flattened)
         }
 
-        logger.info(f"Train TFRecord path: {self.config.train_path}")
+        logger.info(f"Train TFRecord path: {path}")
 
         # Initialize datasets for training and validation
-        self.dataset = TFRecordDataset(
-            self.config.train_path,
+        tfrecord_dataset = TFRecordDataset(
+            path,
             None,
             tfrecord_description,
-            transform=self._preprocess_sample,
+            transform=self._parse_tfrecord,
         )
 
-        # logger.info(f"Train dataset loaded with {len(self.dataset)} images")
+        self.samples = [sample for sample in tfrecord_dataset]
 
-    def _preprocess_sample(self, sample):
+        logger.info(f"Transcript dataset loaded with {len(self.samples)} images")
+
+    def __len__(self):
+        return len(self.samples)
+
+    def __getitem__(self, idx):
+        sample = self.samples[idx]
+
         new_sample = {}
 
-        # 1. Image Processing: Convert byte array to PIL Image
-        image_bytes = sample["normalized_image"]
-        # Convert the byte array back to a numpy array of floats
-        image = np.frombuffer(image_bytes, dtype=np.float32)
+        new_sample["image"] = self.augmentations(sample["image"])
 
-        # Reshape the flattened array to the correct image dimensions (Height, Width, Channels)
-        image = image.reshape(IMAGE_HEIGHT, IMAGE_WIDTH, IMAGE_CHANNELS)
-
-        # Scale the float image data to the [0, 255] range and convert to uint8
-        min_val = np.min(image)
-        max_val = np.max(image)
-        if max_val - min_val > 1e-5:  # Avoid division by zero
-            image = 255.0 * (image - min_val) / (max_val - min_val)
-        else:
-            image = np.zeros_like(image)  # If all pixels are same, create a black image
-
-        image = image.astype(np.uint8)
-        image = PILImage.fromarray(image)
-        new_sample["image"] = self.augmentations(image)
-
-        # 2. Text Decoding: Convert input_ids and attention_mask back to text
         selected_version = torch.randint(0, 8, (1,)).item()
-        input_ids = torch.tensor(sample["input_ids"], dtype=torch.long)[
-            selected_version
-        ]
-        attn_mask = torch.tensor(sample["attn_mask"], dtype=torch.long)[
-            selected_version
-        ]
+        input_ids = sample["input_ids"][selected_version]
+        attn_mask = sample["attn_mask"][selected_version]
         decoded_text = self.tokenizer.decode(
             input_ids, attention_mask=attn_mask, skip_special_tokens=True
         )
         new_sample["text"] = decoded_text
-
-        # Label Processing: Convert byte string label to integer (0 or 1)
-        # class_str = sample["class"].decode("utf-8")
-        # label = 0 if class_str == "n" else 1  # 'n' for normal (0), 'a' for AMD (1)
 
         # 3. Convert to conversation
         conversation = [

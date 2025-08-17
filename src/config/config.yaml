@@ -6,6 +6,7 @@ hydra:
 data:
   train_path: /content/BulletPoint.tfrecord
   test_path: /content/OCT_test_dataset
+  prompt: ${model.prompt}
 
 model:
   from_checkpoint: False
