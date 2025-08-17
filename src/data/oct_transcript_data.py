@@ -13,7 +13,7 @@ IMAGE_WIDTH = 1055
 IMAGE_CHANNELS = 3
 
 
-class OCTTrainData:
+class OCTTranscriptData:
     def __init__(self, prompt, config):
         self.config = config
         self.prompt = prompt
@@ -36,8 +36,14 @@ class OCTTrainData:
                 ),
                 # 3. Adjust brightness and contrast to simulate different scanner settings.
                 transforms.ColorJitter(brightness=0.2, contrast=0.2),
-                # 4. Randomly erase a small patch to make the model more robust.
-                # transforms.RandomErasing(p=0.5, scale=(0.02, 0.04), ratio=(0.3, 3.3)),
+                # 4. Convert PIL Image to a tensor.
+                transforms.ToTensor(),
+                # 5. Normalize the tensor.
+                #    These are standard ImageNet stats. You might need to adjust them
+                #    based on your model's requirements or dataset statistics.
+                transforms.Normalize(
+                    mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]
+                ),
             ]
         )
 
@@ -53,22 +59,14 @@ class OCTTrainData:
         logger.info(f"Train TFRecord path: {self.config.train_path}")
 
         # Initialize datasets for training and validation
-        self.tfrecord_dataset = TFRecordDataset(
+        self.dataset = TFRecordDataset(
             self.config.train_path,
             None,
             tfrecord_description,
             transform=self._preprocess_sample,
         )
 
-        # Create the processed dataset with conversation format
-        self.processed_dataset = [
-            self._convert_to_conversation(sample) for sample in self.tfrecord_dataset
-        ]
-
-        # For compatibility with Trainer/Evaluator, self.dataset points to the conversation-formatted data
-        self.dataset = self.processed_dataset
-
-        logger.info(f"Train dataset loaded with {len(self.dataset)} images")
+        # logger.info(f"Train dataset loaded with {len(self.dataset)} images")
 
     def _preprocess_sample(self, sample):
         new_sample = {}
@@ -94,37 +92,36 @@ class OCTTrainData:
         new_sample["image"] = self.augmentations(image)
 
         # 2. Text Decoding: Convert input_ids and attention_mask back to text
-        input_ids = torch.tensor(sample["input_ids"], dtype=torch.long)
-        attn_mask = torch.tensor(sample["attn_mask"], dtype=torch.long)
+        selected_version = torch.randint(0, 8, (1,)).item()
+        input_ids = torch.tensor(sample["input_ids"], dtype=torch.long)[
+            selected_version
+        ]
+        attn_mask = torch.tensor(sample["attn_mask"], dtype=torch.long)[
+            selected_version
+        ]
         decoded_text = self.tokenizer.decode(
             input_ids, attention_mask=attn_mask, skip_special_tokens=True
         )
         new_sample["text"] = decoded_text
 
-        # 3. Label Processing: Convert byte string label to integer (0 or 1)
-        class_str = sample["class"].decode("utf-8")
-        label = 0 if class_str == "n" else 1  # 'n' for normal (0), 'a' for AMD (1)
-        new_sample["label"] = label
+        # Label Processing: Convert byte string label to integer (0 or 1)
+        # class_str = sample["class"].decode("utf-8")
+        # label = 0 if class_str == "n" else 1  # 'n' for normal (0), 'a' for AMD (1)
 
-        return new_sample
-
-    def _convert_to_conversation(self, sample):
+        # 3. Convert to conversation
         conversation = [
             {
                 "role": "user",
                 "content": [
                     {"type": "text", "text": self.prompt},
-                    {"type": "image", "image": sample["image"]},
+                    {"type": "image", "image": new_sample["image"]},
                 ],
             },
             {
                 "role": "assistant",
-                "content": [
-                    {
-                        "type": "text",
-                        "text": sample["text"],
-                    }
-                ],
+                "content": [{"type": "text", "text": new_sample["text"]}],
             },
         ]
-        return {"messages": conversation}
+        new_sample["messages"] = conversation
+
+        return new_sample
