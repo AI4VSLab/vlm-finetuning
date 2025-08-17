@@ -7,11 +7,12 @@ system:
   device: cuda
 
 data:
-  train_path: /content/VQA.tfrecord
+  train_path: /content/VQA_v2.tfrecord
   test_path: /content/OCT_test_dataset
 
 model:
   model_id: google/gemma-3-4b-pt
+  siglip_checkpoint_path: /media/16TB_Storage/michael/models/kevin_amd/optuna_run_20250807_143750/global_best_model.pt
   prompt: You are a highly skilled AI assistant specializing in ophthalmic diagnostics. Your task is to analyze Optical Coherence Tomography (OCT) images to determine the presence of Age-related Macular Degeneration (AMD) or if the image appears normal. Provide a concise explanation of your findings.
 
 trainer:

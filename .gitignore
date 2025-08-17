@@ -179,3 +179,17 @@ cython_debug/
 # Custom
 outputs/
 dataset/
+
+# <Changes: Kavin> Folders
+OCT_test_dataset/
+xinxin_tfrecord_files/
+
+# <Changes: Kavin> Files
+*.ckpt
+*.jpg
+*.jpeg
+*.png
+*.pt
+*.pth
+*.tfrecord
+*.zip

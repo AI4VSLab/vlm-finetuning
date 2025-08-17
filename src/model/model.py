@@ -38,6 +38,20 @@ class VisionLanguageModel:
 
         # Load model and tokenizer
         model = AutoModelForImageTextToText.from_pretrained(model_id, **model_kwargs)
+
+        # Load the trained SigLIP image encoder
+        siglip_checkpoint_path = config.siglip_checkpoint_path  # From config.yaml instead of hardcoded path
+        siglip_checkpoint = torch.load(siglip_checkpoint_path, map_location=device)
+
+        # Replace Gemma's vision tower (image encoder) with the trained SigLIP encoder
+        model.vision_tower.load_state_dict(siglip_checkpoint['image_encoder_state_dict'])
+
+        # Freeze the image encoder if you don't want to fine-tune it further
+        for param in model.vision_model.parameters():
+            param.requires_grad = False
+        
+        print(f"[INFO] Loaded SigLIP encoder from {siglip_checkpoint_path} and replaced Gemma's vision tower (image encoder).")
+
         processor = AutoProcessor.from_pretrained("google/gemma-3-4b-it")
 
         peft_config = LoraConfig(
