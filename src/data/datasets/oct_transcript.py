@@ -130,8 +130,8 @@ class OCTTranscriptDataset(Dataset):
         new_sample["image"] = image
 
         # 2. Transcript Tokens
-        input_ids = torch.tensor(sample["input_ids"], dtype=torch.long)
-        attn_mask = torch.tensor(sample["attn_mask"], dtype=torch.long)
+        input_ids = torch.tensor(sample["input_ids"], dtype=torch.long).reshape(8, -1)
+        attn_mask = torch.tensor(sample["attn_mask"], dtype=torch.long).reshape(8, -1)
         new_sample["input_ids"] = input_ids
         new_sample["attn_mask"] = attn_mask
 
