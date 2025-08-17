@@ -28,7 +28,7 @@ def main(config: DictConfig) -> None:
 
     # --- DATA ---
     # For training, use OCTExpertData
-    data = OCTTranscriptData(config)
+    data = OCTTranscriptData(config.data)
 
     # --- MODEL ---
     model = VisionLanguageModel(config.model)

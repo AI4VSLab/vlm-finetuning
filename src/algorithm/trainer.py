@@ -9,7 +9,7 @@ class Trainer:
     def __init__(self, data, model, config):
         self.config = config
         self.model = model
-        self.data = data.train_data
+        self.data = data
 
         self.model.train_mode()
 
@@ -18,7 +18,7 @@ class Trainer:
 
         self.trainer = SFTTrainer(
             model=model,
-            train_dataset=self.data.dataset,
+            train_dataset=self.data.train_data,
             processing_class=processor.tokenizer,
             data_collator=UnslothVisionDataCollator(model, processor),
             args=SFTConfig(

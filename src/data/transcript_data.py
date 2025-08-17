@@ -1,5 +1,5 @@
 import logging
-from datasets import OCTTranscriptDataset, OCTTestDataset
+from .datasets import OCTTranscriptDataset, OCTTestDataset
 
 logger = logging.getLogger(__name__)
 

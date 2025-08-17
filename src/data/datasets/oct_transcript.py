@@ -1,5 +1,7 @@
 import logging
 import torch
+import numpy as np
+from PIL import Image as PILImage
 from torch.utils.data import Dataset
 from transformers import AutoTokenizer
 from torchvision import transforms
@@ -34,14 +36,14 @@ class OCTTranscriptDataset(Dataset):
                 ),
                 # 3. Adjust brightness and contrast to simulate different scanner settings.
                 transforms.ColorJitter(brightness=0.2, contrast=0.2),
-                # 4. Convert PIL Image to a tensor.
-                transforms.ToTensor(),
-                # 5. Normalize the tensor.
-                #    These are standard ImageNet stats. You might need to adjust them
-                #    based on your model's requirements or dataset statistics.
-                transforms.Normalize(
-                    mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]
-                ),
+                # # 4. Convert PIL Image to a tensor.
+                # transforms.ToTensor(),
+                # # 5. Normalize the tensor.
+                # #    These are standard ImageNet stats. You might need to adjust them
+                # #    based on your model's requirements or dataset statistics.
+                # transforms.Normalize(
+                #     mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]
+                # ),
             ]
         )
 
@@ -101,5 +103,41 @@ class OCTTranscriptDataset(Dataset):
             },
         ]
         new_sample["messages"] = conversation
+
+        return new_sample
+
+    def _parse_tfrecord(self, sample):
+        new_sample = {}
+
+        # 1. Image Processing: Convert byte array to PIL Image
+        image_bytes = sample["normalized_image"]
+        # Convert the byte array back to a numpy array of floats
+        image = np.frombuffer(image_bytes, dtype=np.float32)
+
+        # Reshape the flattened array to the correct image dimensions (Height, Width, Channels)
+        image = image.reshape(IMAGE_HEIGHT, IMAGE_WIDTH, IMAGE_CHANNELS)
+
+        # Scale the float image data to the [0, 255] range and convert to uint8
+        min_val = np.min(image)
+        max_val = np.max(image)
+        if max_val - min_val > 1e-5:  # Avoid division by zero
+            image = 255.0 * (image - min_val) / (max_val - min_val)
+        else:
+            image = np.zeros_like(image)  # If all pixels are same, create a black image
+
+        image = image.astype(np.uint8)
+        image = PILImage.fromarray(image)
+        new_sample["image"] = image
+
+        # 2. Transcript Tokens
+        input_ids = torch.tensor(sample["input_ids"], dtype=torch.long)
+        attn_mask = torch.tensor(sample["attn_mask"], dtype=torch.long)
+        new_sample["input_ids"] = input_ids
+        new_sample["attn_mask"] = attn_mask
+
+        # 3. Label Processing: Convert byte string label to integer (0 or 1)
+        class_str = sample["class"].decode("utf-8")
+        label = 0 if class_str == "n" else 1  # 'n' for normal (0), 'a' for AMD (1)
+        new_sample["label"] = label
 
         return new_sample
