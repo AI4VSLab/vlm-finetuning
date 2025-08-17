@@ -35,7 +35,7 @@ class Evaluator:
     def evaluate_train_dataset(self, num_samples=50):
         """Evaluating generates sample outputs for the training dataset."""
 
-        all_train_samples = list(self.train_data.tfrecord_dataset)
+        all_train_samples = self.train_data.samples
         sample_indices = random.sample(
             range(len(all_train_samples)), min(num_samples, len(all_train_samples))
         )
@@ -76,7 +76,7 @@ class Evaluator:
             f"Generating {num_samples} sample images from the training dataset..."
         )
 
-        all_train_samples = list(self.train_data.dataset)
+        all_train_samples = self.train_data.samples
         sample_indices = random.sample(
             range(len(all_train_samples)), min(num_samples, len(all_train_samples))
         )
@@ -114,7 +114,7 @@ class Evaluator:
         """Generates and prints predictions for a small sample of images from the test dataset."""
         logger.info(f"Generating {num_samples} sample images from the test dataset...")
 
-        all_test_samples = list(self.test_data.dataset)
+        all_test_samples = list(self.test_data)
         sample_indices = random.sample(
             range(len(all_test_samples)), min(num_samples, len(all_test_samples))
         )
@@ -123,7 +123,7 @@ class Evaluator:
             try:
                 image_from_dataset, label_idx = all_test_samples[idx]
                 image = image_from_dataset
-                true_label_name = self.test_data.dataset.classes[label_idx]
+                true_label_name = self.test_data.classes[label_idx]
 
                 if image is None:
                     logger.warning(f"Skipping test sample {idx} due to missing image.")
