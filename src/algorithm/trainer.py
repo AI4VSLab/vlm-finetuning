@@ -29,7 +29,8 @@ class Trainer:
                 gradient_checkpointing_kwargs={"use_reentrant": False},
                 max_grad_norm=0.3,  # max gradient norm based on QLoRA paper
                 warmup_ratio=0.03,
-                max_steps=self.config.max_steps,
+                num_train_epochs=self.config.num_epochs,
+                # max_steps=self.config.max_steps,
                 learning_rate=self.config.learning_rate,
                 logging_steps=self.config.logging_steps,
                 save_strategy="steps",

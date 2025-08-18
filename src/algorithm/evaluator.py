@@ -35,7 +35,7 @@ class Evaluator:
     def evaluate_train_dataset(self, num_samples=50):
         """Evaluating generates sample outputs for the training dataset."""
 
-        all_train_samples = self.train_data.samples
+        all_train_samples = self.train_data
         sample_indices = random.sample(
             range(len(all_train_samples)), min(num_samples, len(all_train_samples))
         )
@@ -76,7 +76,7 @@ class Evaluator:
             f"Generating {num_samples} sample images from the training dataset..."
         )
 
-        all_train_samples = self.train_data.samples
+        all_train_samples = self.train_data
         sample_indices = random.sample(
             range(len(all_train_samples)), min(num_samples, len(all_train_samples))
         )

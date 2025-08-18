@@ -15,8 +15,9 @@ model:
   prompt: You are an expert ophthalmologist (retina specialist) and medical AI researcher. Extract a consist list of possible clinically relavant image features from OCT eye scans. Each feature should be separated by semicolon.
 
 trainer:
-  max_steps: 500
-  batch_size: 4
+  # max_steps: 500
+  num_epochs: 20
+  batch_size: 8
   grad_accum_steps: 1
   learning_rate: 1e-5
   logging_steps: 5
