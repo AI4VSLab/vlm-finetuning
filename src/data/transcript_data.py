@@ -17,4 +17,4 @@ class OCTTranscriptData:
         logger.info(f"Test Dataset loaded with {len(self.test_data)} images.")
         logger.info(f"Found classes: {self.test_data.classes}")
         logger.info(f"Class to index mapping: {self.test_data.class_to_idx}")
-        logger.info("Data Loaded.")
+        logger.info("Transcript Data Loaded.")

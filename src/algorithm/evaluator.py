@@ -114,7 +114,7 @@ class Evaluator:
         """Generates and prints predictions for a small sample of images from the test dataset."""
         logger.info(f"Generating {num_samples} sample images from the test dataset...")
 
-        all_test_samples = list(self.test_data)
+        all_test_samples = self.test_data
         sample_indices = random.sample(
             range(len(all_test_samples)), min(num_samples, len(all_test_samples))
         )
