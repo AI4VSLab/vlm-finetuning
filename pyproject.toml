@@ -20,6 +20,7 @@ dependencies = [
     "evaluate",
     "rouge_score",
     "nltk",
+    "wandb",
 ]
 
 [dependency-groups]

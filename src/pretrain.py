@@ -1,5 +1,4 @@
-from algorithm import Trainer
-from algorithm import Evaluator
+from algorithm import Trainer, Evaluator
 from model import VisionLanguageModel
 from data import OCTDiagnosisData
 
@@ -8,7 +7,8 @@ import torch
 import random
 import numpy as np
 import hydra
-from omegaconf import DictConfig
+import wandb
+from omegaconf import DictConfig, OmegaConf
 
 logger = logging.getLogger(__name__)
 
@@ -21,7 +21,8 @@ def setup():
 
 
 def cleanup():
-    pass
+    if wandb.run:
+        wandb.finish()
 
 
 @hydra.main(version_base=None, config_path="config", config_name="pretrain")
@@ -29,6 +30,15 @@ def main(config: DictConfig) -> None:
     """Main function to run the training pipeline."""
     # --- SETUP ---
     setup()
+
+    # --- WANDB ---
+    wandb.init(
+        entity='AI4VS-Lab',
+        project='medgemma-pretraining',
+        config=OmegaConf.to_container(
+            config, resolve=True, throw_on_missing=True
+        )
+    )
 
     # --- DATA ---
     # For training, use OCTExpertData

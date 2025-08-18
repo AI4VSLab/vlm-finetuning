@@ -4,20 +4,26 @@ from model import VisionLanguageModel
 from data import OCTTranscriptData
 
 import logging
+import wandb
 import torch
-import hydra
-from omegaconf import DictConfig
+import random
+import numpy as np
+import hydratorch.manual_seed(42)
+from omegaconf import DictConfig, OmegaConf
 
 logger = logging.getLogger(__name__)
 
 
 def setup():
     """Set up the environment."""
+    random.seed(42)
+    np.random.seed(42)
     torch.manual_seed(42)
 
 
 def cleanup():
-    pass
+    if wandb.run:
+        wandb.finish()
 
 
 @hydra.main(version_base=None, config_path="config", config_name="finetune")
@@ -25,6 +31,15 @@ def main(config: DictConfig) -> None:
     """Main function to run the training pipeline."""
     # --- SETUP ---
     setup()
+
+    # --- WANDB ---
+    wandb.init(
+        entity='AI4VS-Lab',
+        project='medgemma-finetuning',
+        config=OmegaConf.to_container(
+            config, resolve=True, throw_on_missing=True
+        )
+    )
 
     # --- DATA ---
     # For training, use OCTExpertData

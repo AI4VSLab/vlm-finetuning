@@ -16,7 +16,8 @@ class Trainer:
         model = self.model.model
         processor = self.model.processor
 
-        logging_steps = self.config.num_epochs * len(self.data.train_data) // (self.config.batch_size * self.config.grad_accum_steps)
+        # log every 1%
+        logging_steps = self.config.num_epochs * len(self.data.train_data) // (self.config.batch_size * self.config.grad_accum_steps * 100)
 
         self.trainer = SFTTrainer(
             model=model,
@@ -41,7 +42,7 @@ class Trainer:
                 lr_scheduler_type="cosine",
                 seed=3407,
                 output_dir="outputs",
-                report_to="none",  # For Weights and Biases
+                report_to="wandb",  # For Weights and Biases
                 # You MUST put the below items for vision finetuning:
                 remove_unused_columns=False,
                 dataset_text_field="",
