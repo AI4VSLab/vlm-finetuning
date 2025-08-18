@@ -6,6 +6,7 @@ import evaluate
 import nltk
 import json
 import re
+from bert_score import BERTScorer
 
 logger = logging.getLogger(__name__)
 
@@ -28,8 +29,7 @@ class Evaluator:
         self.bleu = evaluate.load("bleu")
         self.meteor = evaluate.load("meteor")
         self.rouge = evaluate.load("rouge")
-        self.bert_score = evaluate.load("bertscore")
-        self.medbert_model = "emilyalsentzer/Bio_ClinicalBERT"
+        self.bert_score = BERTScorer(lang='en')
 
         # Set model to inference mode
         self.model.inference_mode()
@@ -92,18 +92,9 @@ class Evaluator:
         )
 
         # Compute BERTScore
-        bertscore_results = self.bert_score.compute(
-            predictions=all_predicted_texts, references=all_reference_texts, lang="en"
-        )
-        bert_score = np.mean(bertscore_results["f1"])
+        _, _, f1_score = self.bert_score.score(all_predicted_texts, all_reference_texts)
+        bert_score = np.mean(f1_score)
 
-        # Compute MedBERT Score
-        medbert_results = self.bert_score.compute(
-            predictions=all_predicted_texts,
-            references=all_reference_texts,
-            model_type=self.medbert_model,
-        )
-        medbert_score = np.mean(medbert_results["f1"])
 
         accuracy = (
             (correct_predictions / total_predictions) * 100
@@ -116,7 +107,7 @@ class Evaluator:
             f"Lexical Metrics -  BLEU: {bleu_score['bleu']:.4f}, METEOR: {meteor_score['meteor']:.4f}, ROUGE-L: {rouge_scores['rougeL']:.4f}"
         )
         logger.info(
-            f"Semantic Metrics - BERT: {bert_score:.4f}, MedBERT: {medbert_score:.4f}"
+            f"Semantic Metrics - BERT: {bert_score:.4f}"
         )
 
     def generate(self, dataset, num_samples=5):
