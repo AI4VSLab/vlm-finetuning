@@ -1,4 +1,3 @@
-__all__ = ["OCTTranscriptDataset", "OCTTestDataset"]
+__all__ = ["OCTTranscriptDataset"]
 
 from .oct_transcript import OCTTranscriptDataset
-from .oct_test import OCTTestDataset

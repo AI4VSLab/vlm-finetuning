@@ -1,4 +1,4 @@
-import logging
+import json
 import torch
 import numpy as np
 from PIL import Image as PILImage
@@ -7,7 +7,6 @@ from transformers import AutoTokenizer
 from torchvision import transforms
 from tfrecord.torch.dataset import TFRecordDataset
 
-logger = logging.getLogger(__name__)
 
 IMAGE_HEIGHT = 703
 IMAGE_WIDTH = 1055
@@ -15,8 +14,8 @@ IMAGE_CHANNELS = 3
 
 
 class OCTTranscriptDataset(Dataset):
-    def __init__(self, path, prompt):
-        self.prompt = prompt
+    def __init__(self, path):
+        self.prompt = "Analyze this retinal OCT scan and provide a diagnosis and a list of key biomarkers in JSON format."
 
         # Initialize the tokenizer for text processing
         self.tokenizer = AutoTokenizer.from_pretrained("google-t5/t5-base")
@@ -56,8 +55,6 @@ class OCTTranscriptDataset(Dataset):
             "normalized_image": "byte",  # Raw image bytes (float32, flattened)
         }
 
-        logger.info(f"Train TFRecord path: {path}")
-
         # Initialize datasets for training and validation
         tfrecord_dataset = TFRecordDataset(
             path,
@@ -67,8 +64,6 @@ class OCTTranscriptDataset(Dataset):
         )
 
         self.samples = [sample for sample in tfrecord_dataset]
-
-        logger.info(f"Transcript dataset loaded with {len(self.samples)} images")
 
     def __len__(self):
         return len(self.samples)
@@ -83,10 +78,14 @@ class OCTTranscriptDataset(Dataset):
         selected_version = torch.randint(0, 8, (1,)).item()
         input_ids = sample["input_ids"][selected_version]
         attn_mask = sample["attn_mask"][selected_version]
-        decoded_text = self.tokenizer.decode(
+        biomarkers = self.tokenizer.decode(
             input_ids, attention_mask=attn_mask, skip_special_tokens=True
         )
-        new_sample["text"] = decoded_text
+        target = {
+            "diagnosis": sample["label"],
+            "biomarkers": [feature.strip() for feature in biomarkers.split(";")],
+        }
+        new_sample["text"] = json.dumps(target)
 
         # 3. Convert to conversation
         conversation = [
@@ -137,7 +136,9 @@ class OCTTranscriptDataset(Dataset):
 
         # 3. Label Processing: Convert byte string label to integer (0 or 1)
         class_str = sample["class"].decode("utf-8")
-        label = 0 if class_str == "n" else 1  # 'n' for normal (0), 'a' for AMD (1)
+        label = (
+            "Normal" if class_str == "n" else "Age-related Macular Degeneration (AMD)"
+        )  # 'n' for normal (0), 'a' for AMD (1)
         new_sample["label"] = label
 
         return new_sample
