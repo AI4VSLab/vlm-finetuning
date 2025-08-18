@@ -25,4 +25,4 @@ trainer:
 
 evaluator:
   eval_samples: 100
-  gen_samples: 5
+  gen_samples: 10
