@@ -74,6 +74,7 @@ class OCTTranscriptDataset(Dataset):
         new_sample = {}
 
         new_sample["image"] = self.augmentations(sample["image"])
+        new_sample["label"] = sample["label"]
 
         selected_version = torch.randint(0, 8, (1,)).item()
         input_ids = sample["input_ids"][selected_version]

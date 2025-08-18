@@ -10,7 +10,7 @@ class VisionLanguageModel:
         logger.info("Creating model...")
         self.config = config
         self.load()
-        self.prompt = self.config.prompt
+        self.prompt = "Analyze this retinal OCT scan and provide a diagnosis and a list of key biomarkers in JSON format."
         logger.info("Model created.")
 
     def save(self):

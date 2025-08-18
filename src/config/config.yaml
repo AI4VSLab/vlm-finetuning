@@ -11,7 +11,6 @@ model:
   from_checkpoint: False
   name: unsloth/medgemma-4b-it
   path: /content/models/unsloth/medgemma-4b-it-finetuned
-  prompt: Analyze this retinal OCT scan and provide a diagnosis and a list of key biomarkers in JSON format.
 
 trainer:
   max_steps: 500
