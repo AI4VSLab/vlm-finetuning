@@ -8,7 +8,7 @@ import wandb
 import torch
 import random
 import numpy as np
-import hydratorch.manual_seed(42)
+import hydra
 from omegaconf import DictConfig, OmegaConf
 
 logger = logging.getLogger(__name__)
@@ -34,11 +34,9 @@ def main(config: DictConfig) -> None:
 
     # --- WANDB ---
     wandb.init(
-        entity='AI4VS-Lab',
-        project='medgemma-finetuning',
-        config=OmegaConf.to_container(
-            config, resolve=True, throw_on_missing=True
-        )
+        entity="AI4VS-Lab",
+        project="medgemma-finetuning",
+        config=OmegaConf.to_container(config, resolve=True, throw_on_missing=True),
     )
 
     # --- DATA ---

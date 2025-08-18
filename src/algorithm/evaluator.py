@@ -1,8 +1,11 @@
 import logging
 import random
 from tqdm import tqdm
+import numpy as np
 import evaluate
 import nltk
+import json
+import re
 
 logger = logging.getLogger(__name__)
 
@@ -25,6 +28,8 @@ class Evaluator:
         self.bleu = evaluate.load("bleu")
         self.meteor = evaluate.load("meteor")
         self.rouge = evaluate.load("rouge")
+        self.bert_score = evaluate.load("bertscore")
+        self.medbert_model = "emilyalsentzer/Bio_ClinicalBERT"
 
         # Set model to inference mode
         self.model.inference_mode()
@@ -43,10 +48,12 @@ class Evaluator:
 
         all_predicted_texts = []
         all_reference_texts = []
+        correct_predictions, total_predictions = 0, 0
 
         for i, idx in enumerate(tqdm(sample_indices, desc="Evaluating Train Data")):
             sample = all_samples[idx]
             image = sample["image"]
+            label = sample["label"]
             reference = sample["text"]
 
             # Generate full text output for parsing the diagnosis
@@ -56,6 +63,23 @@ class Evaluator:
 
             all_predicted_texts.append(predicted)
             all_reference_texts.append(reference)
+
+            try:
+                parsed_output = json.loads(predicted)
+                predicted_diagnosis = parsed_output.get("diagnosis", " ")
+                # Extract the class name from the diagnosis string, e.g., "Description (CLASS)"
+                match = re.search(r"\((\w+)\)", predicted_diagnosis)
+                if match:
+                    predicted_label = match.group(1)
+                    if predicted_label == label:
+                        correct_predictions += 1
+                total_predictions += 1
+
+            except (json.JSONDecodeError, AttributeError):
+                logger.warning(
+                    f"Could not parse model output for accuracy: {predicted}"
+                )
+                continue
 
         bleu_score = self.bleu.compute(
             predictions=all_predicted_texts, references=all_reference_texts
@@ -67,8 +91,32 @@ class Evaluator:
             predictions=all_predicted_texts, references=all_reference_texts
         )
 
+        # Compute BERTScore
+        bertscore_results = self.bert_score.compute(
+            predictions=all_predicted_texts, references=all_reference_texts, lang="en"
+        )
+        bert_score = np.mean(bertscore_results["f1"])
+
+        # Compute MedBERT Score
+        medbert_results = self.bert_score.compute(
+            predictions=all_predicted_texts,
+            references=all_reference_texts,
+            model_type=self.medbert_model,
+        )
+        medbert_score = np.mean(medbert_results["f1"])
+
+        accuracy = (
+            (correct_predictions / total_predictions) * 100
+            if total_predictions > 0
+            else 0
+        )
+
+        logger.info(f"Classification Accuracy: {accuracy:.2f}%")
         logger.info(
-            f"Text Metrics -  BLEU: {bleu_score['bleu']:.4f}, METEOR: {meteor_score['meteor']:.4f}, ROUGE-L: {rouge_scores['rougeL']:.4f}"
+            f"Lexical Metrics -  BLEU: {bleu_score['bleu']:.4f}, METEOR: {meteor_score['meteor']:.4f}, ROUGE-L: {rouge_scores['rougeL']:.4f}"
+        )
+        logger.info(
+            f"Semantic Metrics - BERT: {bert_score:.4f}, MedBERT: {medbert_score:.4f}"
         )
 
     def generate(self, dataset, num_samples=5):
