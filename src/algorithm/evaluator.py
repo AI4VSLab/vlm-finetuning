@@ -1,12 +1,10 @@
 import logging
 import random
 from tqdm import tqdm
-import numpy as np
 import evaluate
 import nltk
 import json
 import re
-from bert_score import BERTScorer
 
 logger = logging.getLogger(__name__)
 
@@ -29,7 +27,6 @@ class Evaluator:
         self.bleu = evaluate.load("bleu")
         self.meteor = evaluate.load("meteor")
         self.rouge = evaluate.load("rouge")
-        self.bert_score = BERTScorer(lang='en')
 
         # Set model to inference mode
         self.model.inference_mode()
@@ -91,11 +88,6 @@ class Evaluator:
             predictions=all_predicted_texts, references=all_reference_texts
         )
 
-        # Compute BERTScore
-        _, _, f1_score = self.bert_score.score(all_predicted_texts, all_reference_texts)
-        bert_score = np.mean(f1_score)
-
-
         accuracy = (
             (correct_predictions / total_predictions) * 100
             if total_predictions > 0
@@ -104,10 +96,7 @@ class Evaluator:
 
         logger.info(f"Classification Accuracy: {accuracy:.2f}%")
         logger.info(
-            f"Lexical Metrics -  BLEU: {bleu_score['bleu']:.4f}, METEOR: {meteor_score['meteor']:.4f}, ROUGE-L: {rouge_scores['rougeL']:.4f}"
-        )
-        logger.info(
-            f"Semantic Metrics - BERT: {bert_score:.4f}"
+            f"Text Metrics -  BLEU: {bleu_score['bleu']:.4f}, METEOR: {meteor_score['meteor']:.4f}, ROUGE-L: {rouge_scores['rougeL']:.4f}"
         )
 
     def generate(self, dataset, num_samples=5):

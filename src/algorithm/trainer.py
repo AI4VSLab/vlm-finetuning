@@ -26,7 +26,6 @@ class Trainer:
         self.trainer = SFTTrainer(
             model=model,
             train_dataset=self.data.train_data,
-            eval_dataset=getattr(self.data, "val_data", None),
             processing_class=processor.tokenizer,
             data_collator=UnslothVisionDataCollator(model, processor),
             args=SFTConfig(
