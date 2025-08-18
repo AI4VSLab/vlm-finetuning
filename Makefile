@@ -4,9 +4,13 @@ PYTHON = uv run
 install:
 	uv sync --all-groups
 
-.PHONY: train
-train:
-	$(PYTHON) src/main.py
+.PHONY: pretrain
+pretrain:
+	$(PYTHON) src/pretrain.py
+
+.PHONY: finetune
+finetune:
+$(PYTHON) src/finetune.py
 
 .PHONY: clean
 clean:

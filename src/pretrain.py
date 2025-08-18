@@ -1,7 +1,7 @@
 from algorithm import Trainer
 from algorithm import Evaluator
 from model import VisionLanguageModel
-from data import OCTTranscriptData
+from data import OCTDiagnosisData
 
 import logging
 import torch
@@ -20,7 +20,7 @@ def cleanup():
     pass
 
 
-@hydra.main(version_base=None, config_path="config", config_name="config")
+@hydra.main(version_base=None, config_path="config", config_name="pretrain")
 def main(config: DictConfig) -> None:
     """Main function to run the training pipeline."""
     # --- SETUP ---
@@ -28,7 +28,7 @@ def main(config: DictConfig) -> None:
 
     # --- DATA ---
     # For training, use OCTExpertData
-    data = OCTTranscriptData(config.data)
+    data = OCTDiagnosisData(config.data)
     print(data.train_data[0])
     print(data.test_data[0])
 
