@@ -5,6 +5,8 @@ from data import OCTDiagnosisData
 
 import logging
 import torch
+import random
+import numpy as np
 import hydra
 from omegaconf import DictConfig
 
@@ -13,6 +15,8 @@ logger = logging.getLogger(__name__)
 
 def setup():
     """Set up the environment."""
+    random.seed(42)
+    np.random.seed(42)
     torch.manual_seed(42)
 
 

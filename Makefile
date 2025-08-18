@@ -10,7 +10,7 @@ pretrain:
 
 .PHONY: finetune
 finetune:
-$(PYTHON) src/finetune.py
+	$(PYTHON) src/finetune.py
 
 .PHONY: clean
 clean:
@@ -20,7 +20,6 @@ clean:
 	find . -name '__pycache__' -delete
 	rm -rf build dist src/*.egg-info
 	$(PYTHON) -m ruff clean
-
 
 .PHONY: lint
 lint:

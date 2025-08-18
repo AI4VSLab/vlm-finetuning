@@ -19,6 +19,7 @@ class Trainer:
         self.trainer = SFTTrainer(
             model=model,
             train_dataset=self.data.train_data,
+            eval_dataset=getattr(self.data, "val_data", None),
             processing_class=processor.tokenizer,
             data_collator=UnslothVisionDataCollator(model, processor),
             args=SFTConfig(
@@ -39,7 +40,7 @@ class Trainer:
                 lr_scheduler_type="cosine",
                 seed=3407,
                 output_dir="outputs",
-                report_to="none",  # For Weights and Biases
+                report_to="wandb",  # For Weights and Biases
                 # You MUST put the below items for vision finetuning:
                 remove_unused_columns=False,
                 dataset_text_field="",

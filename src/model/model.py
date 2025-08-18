@@ -35,9 +35,9 @@ class VisionLanguageModel:
                 finetune_language_layers=True,  # False if not finetuning language layers
                 finetune_attention_modules=True,  # False if not finetuning attention layers
                 finetune_mlp_modules=True,  # False if not finetuning MLP layers
-                r=8,  # The larger, the higher the accuracy, but might overfit
-                lora_alpha=8,  # Recommended alpha == r at least
-                lora_dropout=0,
+                r=self.config.lora.r,  # The larger, the higher the accuracy, but might overfit
+                lora_alpha=self.config.lora.alpha,  # Recommended alpha == r at least
+                lora_dropout=self.config.lora.dropout,
                 bias="none",
                 random_state=3407,
                 use_rslora=False,  # We support rank stabilized LoRA

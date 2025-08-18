@@ -14,8 +14,8 @@ IMAGE_CHANNELS = 3
 
 
 class OCTTranscriptDataset(Dataset):
-    def __init__(self, path):
-        self.prompt = "Analyze this retinal OCT scan and provide a diagnosis and a list of key biomarkers in JSON format."
+    def __init__(self, path, prompt):
+        self.prompt = prompt
 
         # Initialize the tokenizer for text processing
         self.tokenizer = AutoTokenizer.from_pretrained("google-t5/t5-base")
@@ -80,7 +80,7 @@ class OCTTranscriptDataset(Dataset):
             input_ids, attention_mask=attn_mask, skip_special_tokens=True
         )
         label = sample["label"]
-        diagnosis_description = self.class_descriptions.get(label)
+        diagnosis_description = self.class_descriptions.get(label, label)
         target = {
             "diagnosis": f"{diagnosis_description} ({label})",
             "biomarkers": [feature.strip() for feature in biomarkers.split(";")],

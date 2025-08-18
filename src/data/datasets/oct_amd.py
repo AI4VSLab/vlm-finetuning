@@ -1,0 +1,64 @@
+import json
+from torch.utils.data import Dataset
+from torchvision import datasets
+
+
+class OCTAMDDataset(Dataset):
+    def __init__(self, root, prompt):
+        """
+        Args:
+            root (string): Root directory path of the dataset.
+        """
+        self.prompt = prompt
+        self.dataset = datasets.ImageFolder(root)
+        self.classes = ["NORMAL", "AMD"]
+        self.class_to_idx = {"NORMAL": 0, "AMD": 1}
+
+        # Dictionary to map class names to descriptions
+        self.class_descriptions = {
+            "AMD": "Age-related Macular Degeneration",
+            "NORMAL": "Healthy eyes with no abnormalities",
+        }
+
+    def __len__(self):
+        return len(self.dataset)
+
+    def __getitem__(self, idx):
+        # 1. Get the raw image and label from the internal ImageFolder dataset
+        image, label_idx = self.dataset[idx]
+        label_name = self.classes[label_idx]
+
+        # 2. Create the structured text output
+        diagnosis_description = self.class_descriptions.get(
+            label_name, label_name
+        )  # Get description, default to class name if not found
+        target = {
+            "diagnosis": f"{diagnosis_description} ({label_name})",
+            "biomarkers": [],  # No biomarkers in this dataset
+        }
+        text_output = json.dumps(target)
+
+        # 3. Format the data into the final dictionary
+        sample = {
+            "image": image,
+            "label": label_name,
+            "text": text_output,
+        }
+
+        # 4. Convert to the conversational format for the model
+        conversation = [
+            {
+                "role": "user",
+                "content": [
+                    {"type": "text", "text": self.prompt},
+                    {"type": "image", "image": sample["image"]},
+                ],
+            },
+            {
+                "role": "assistant",
+                "content": [{"type": "text", "text": sample["text"]}],
+            },
+        ]
+        sample["messages"] = conversation
+
+        return sample

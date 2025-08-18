@@ -5,13 +5,13 @@ import os
 
 
 class OCTC8Dataset(Dataset):
-    def __init__(self, root, split="train"):
+    def __init__(self, root, split, prompt):
         """
         Args:
             root (string): Root directory path of the dataset.
             split (string): Specifies the dataset split ('train', 'val', 'test').
         """
-        self.prompt = "Analyze this retinal OCT scan and provide a diagnosis and a list of key biomarkers in JSON format."
+        self.prompt = prompt
         self.split = split
         self.dataset = datasets.ImageFolder(os.path.join(root, split))
         self.classes = self.dataset.classes
@@ -65,7 +65,7 @@ class OCTC8Dataset(Dataset):
         # with an empty list for biomarkers to maintain consistency.
         # Format the diagnosis as "<description> (<class>)"
         diagnosis_description = self.class_descriptions.get(
-            label_name
+            label_name, label_name
         )  # Get description, default to class name if not found
         target = {
             "diagnosis": f"{diagnosis_description} ({label_name})",

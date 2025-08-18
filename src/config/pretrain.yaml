@@ -4,19 +4,24 @@ hydra:
       level: INFO
 
 data:
-  train_path: /content/RetinalOCT_Dataset/RetinalOCT_Dataset
+  path: /content/RetinalOCT_Dataset/RetinalOCT_Dataset
+  prompt: ${model.prompt}
 
 model:
+  prompt: "Analyze this retinal OCT scan and provide a diagnosis and a list of key biomarkers in JSON format."
   from_checkpoint: False
   name: unsloth/medgemma-4b-it
-  path: /content/models/unsloth/medgemma-4b-it-finetuned
+  path: /content/${model.name}-pretrained
+  lora:
+    r: 16 # The larger, the higher the accuracy, but might overfit
+    alpha: 16 # Recommended alpha == r at least
+    dropout: 0.05
 
 trainer:
-  max_steps: 500
-  # num_epochs: 20
-  batch_size: 8
+  num_epochs: 1
+  batch_size: 16
   grad_accum_steps: 1
-  learning_rate: 1e-5
+  learning_rate: 1e-4
   logging_steps: 5
 
 evaluator:
