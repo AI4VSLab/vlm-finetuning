@@ -1,7 +1,7 @@
 import logging
+import wandb
 from unsloth.trainer import UnslothVisionDataCollator
 from trl import SFTTrainer, SFTConfig
-import wandb
 
 logger = logging.getLogger(__name__)
 
@@ -48,7 +48,7 @@ class Trainer:
                 run_name=wandb.run.name,
                 report_to="wandb",  # For Weights and Biases
                 # You MUST put the below items for vision finetuning:
-                remove_unused_columns=False,
+                remove_unused_columns=True,
                 dataset_text_field="",
                 dataset_kwargs={"skip_prepare_dataset": True},
                 max_length=2048,

@@ -33,9 +33,11 @@ def main(config: DictConfig) -> None:
 
     # --- WANDB ---
     wandb.init(
-        entity="AI4VS-Lab",
-        project="medgemma-pretraining",
-        config=OmegaConf.to_container(config, resolve=True, throw_on_missing=True),
+        entity='AI4VS-Lab',
+        project='medgemma-pretraining',
+        config=OmegaConf.to_container(
+            config, resolve=True, throw_on_missing=True
+        )
     )
 
     # --- DATA ---
