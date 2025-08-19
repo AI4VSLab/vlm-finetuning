@@ -4,7 +4,8 @@ hydra:
       level: INFO
 
 data:
-  path: /content/RetinalOCT_Dataset/RetinalOCT_Dataset
+  train_path: /content/OCT_Transcript.tfrecord # [/content/OCT_Transcript.tfrecord, /content/RetinalOCT_Dataset]
+  test_path: /content/OCT_Test
   prompt: ${model.prompt}
 
 model:

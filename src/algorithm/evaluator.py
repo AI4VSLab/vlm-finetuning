@@ -30,7 +30,6 @@ class Evaluator:
         self.rouge = evaluate.load("rouge")
         self.bert = evaluate.load("bertscore")
 
-
         # Set model to inference mode
         self.model.inference_mode()
         logger.info("Evaluator initialized for evaluation and sample generation.")
@@ -91,7 +90,11 @@ class Evaluator:
             predictions=all_predicted_texts, references=all_reference_texts
         )
 
-        bert_scores = bertscore.compute(predictions=predictions, references=references, lang="en")
+        bert_scores = self.bert.compute(predictions=all_predicted_texts, references=all_reference_texts, lang="en")
+
+        model_type = "emilyalsentzer/Bio_ClinicalBERT"
+        num_layers=12
+        medbert_scores = self.bert.compute(predictions=all_predicted_texts, references=all_reference_texts, model_type=model_type, num_layers=num_layers)
 
         accuracy = (
             (correct_predictions / total_predictions) * 100
@@ -103,7 +106,7 @@ class Evaluator:
         logger.info(
             f"Lexical Metrics -  BLEU: {bleu_score['bleu']:.4f}, METEOR: {meteor_score['meteor']:.4f}, ROUGE-L: {rouge_scores['rougeL']:.4f}"
         )
-        logger.info(f"Semantic Metrics - BERT: {np.mean(bert_scores['f1']):.4f}")
+        logger.info(f"Semantic Metrics - BERT: {np.mean(bert_scores['f1']):.4f}, MedBERT: {np.mean(medbert_scores['f1']):.4f}")
 
     def generate(self, dataset, num_samples=5):
         """Generates and prints predictions for a small sample of images from the input dataset."""
