@@ -47,7 +47,7 @@ class Evaluator:
         all_reference_texts = []
         correct_predictions, total_predictions = 0, 0
 
-        for i, idx in enumerate(tqdm(sample_indices, desc="Evaluating Train Data")):
+        for i, idx in enumerate(tqdm(sample_indices, desc="Evaluating Data")):
             sample = all_samples[idx]
             image = sample["image"]
             label = sample["label"]
