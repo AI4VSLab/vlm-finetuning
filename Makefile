@@ -3,15 +3,18 @@ PYTHON = uv run
 .PHONY: install
 install:
 	uv sync --all-groups
-	uv add bert_score
 
 .PHONY: pretrain
 pretrain:
-	$(PYTHON) src/pretrain.py
+	export MPLBACKEND=agg && $(PYTHON) src/pretrain.py
 
 .PHONY: finetune
 finetune:
-	$(PYTHON) src/finetune.py
+	export MPLBACKEND=agg && $(PYTHON) src/finetune.py
+
+.PHONY: evaluate
+evaluate:
+	export MPLBACKEND=agg && $(PYTHON) src/evaluate.py
 
 .PHONY: clean
 clean:

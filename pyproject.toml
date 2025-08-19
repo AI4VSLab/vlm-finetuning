@@ -21,6 +21,7 @@ dependencies = [
     "rouge_score",
     "nltk",
     "wandb",
+    "bert_score",
 ]
 
 [dependency-groups]
