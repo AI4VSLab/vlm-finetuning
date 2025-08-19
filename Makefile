@@ -14,7 +14,7 @@ finetune:
 
 .PHONY: evaluate
 evaluate:
-	export MPLBACKEND=agg && $(PYTHON) src/evaluate.py
+	export MPLBACKEND=agg && $(PYTHON) src/evaluation.py
 
 .PHONY: clean
 clean:
