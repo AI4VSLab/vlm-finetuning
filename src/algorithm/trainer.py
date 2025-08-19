@@ -48,7 +48,7 @@ class Trainer:
                 run_name=wandb.run.name,
                 report_to="wandb",  # For Weights and Biases
                 # You MUST put the below items for vision finetuning:
-                remove_unused_columns=True,
+                remove_unused_columns=False,
                 dataset_text_field="",
                 dataset_kwargs={"skip_prepare_dataset": True},
                 max_length=2048,
