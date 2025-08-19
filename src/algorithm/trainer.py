@@ -2,6 +2,7 @@ import logging
 import wandb
 from unsloth.trainer import UnslothVisionDataCollator
 from trl import SFTTrainer, SFTConfig
+from data import ChatWrapper
 
 logger = logging.getLogger(__name__)
 
@@ -21,11 +22,11 @@ class Trainer:
         num_batches = self.config.num_epochs * len(self.data.train_data)
         effective_batch_size = self.config.batch_size * self.config.grad_accum_steps
         total_steps = num_batches // effective_batch_size
-        logging_steps = total_steps // 100
+        logging_steps = 1 if total_steps < 100 else total_steps // 100
 
         self.trainer = SFTTrainer(
             model=model,
-            train_dataset=self.data.train_data,
+            train_dataset=ChatWrapper(self.data.train_data, self.model.system_prompt, self.model.user_prompt),
             processing_class=processor.tokenizer,
             data_collator=UnslothVisionDataCollator(model, processor),
             args=SFTConfig(

@@ -4,12 +4,12 @@ from torchvision import datasets
 
 
 class OCTAMDDataset(Dataset):
-    def __init__(self, root, prompt):
+    def __init__(self, root):
         """
         Args:
             root (string): Root directory path of the dataset.
         """
-        self.prompt = prompt
+        self.system_prompt
         self.dataset = datasets.ImageFolder(root)
         self.classes = ["NORMAL", "AMD"]
         self.class_to_idx = {"NORMAL": 0, "AMD": 1}
@@ -44,21 +44,5 @@ class OCTAMDDataset(Dataset):
             "label": label_name,
             "text": text_output,
         }
-
-        # 4. Convert to the conversational format for the model
-        conversation = [
-            {
-                "role": "user",
-                "content": [
-                    {"type": "text", "text": self.prompt},
-                    {"type": "image", "image": sample["image"]},
-                ],
-            },
-            {
-                "role": "assistant",
-                "content": [{"type": "text", "text": sample["text"]}],
-            },
-        ]
-        sample["messages"] = conversation
 
         return sample

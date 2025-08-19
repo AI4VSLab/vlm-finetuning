@@ -6,7 +6,6 @@ hydra:
 data:
   train_path: /content/OCT_Transcript.tfrecord # [/content/OCT_Transcript.tfrecord, /content/RetinalOCT_Dataset]
   test_path: /content/OCT_Test
-  prompt: ${model.prompt}
 
 model:
   prompt: Analyze this retinal OCT scan and provide a diagnosis and a list of key biomarkers in JSON format.

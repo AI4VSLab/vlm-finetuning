@@ -10,7 +10,8 @@ class VisionLanguageModel:
         logger.info("Creating model...")
         self.config = config
         self.load()
-        self.prompt = "Analyze this retinal OCT scan and provide a diagnosis and a list of key biomarkers in JSON format."
+        self.system_prompt = self.config.system_prompt
+        self.user_prompt = self.config.user_prompt
         logger.info("Model created.")
 
     def save(self):
@@ -59,9 +60,10 @@ class VisionLanguageModel:
 
     def generate(self, image, use_streamer=True):
         messages = [
+            {"role": "system", "content": self.system_prompt},
             {
                 "role": "user",
-                "content": [{"type": "text", "text": self.prompt}, {"type": "image"}],
+                "content": [{"type": "text", "text": self.user_prompt}, {"type": "image"}],
             }
         ]
         input_text = self.processor.apply_chat_template(

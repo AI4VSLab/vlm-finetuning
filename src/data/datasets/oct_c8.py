@@ -5,13 +5,12 @@ import os
 
 
 class OCTC8Dataset(Dataset):
-    def __init__(self, root, split, prompt):
+    def __init__(self, root, split):
         """
         Args:
             root (string): Root directory path of the dataset.
             split (string): Specifies the dataset split ('train', 'val', 'test').
         """
-        self.prompt = prompt
         self.split = split
         self.dataset = datasets.ImageFolder(os.path.join(root, split))
         self.classes = self.dataset.classes
@@ -79,21 +78,5 @@ class OCTC8Dataset(Dataset):
             "label": label_name,
             "text": text_output,
         }
-
-        # 5. Convert to the conversational format for the model
-        conversation = [
-            {
-                "role": "user",
-                "content": [
-                    {"type": "text", "text": self.prompt},
-                    {"type": "image", "image": sample["image"]},
-                ],
-            },
-            {
-                "role": "assistant",
-                "content": [{"type": "text", "text": sample["text"]}],
-            },
-        ]
-        sample["messages"] = conversation
 
         return sample

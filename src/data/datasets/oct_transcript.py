@@ -14,9 +14,7 @@ IMAGE_CHANNELS = 3
 
 
 class OCTTranscriptDataset(Dataset):
-    def __init__(self, path, prompt):
-        self.prompt = prompt
-
+    def __init__(self, path):
         # Initialize the tokenizer for text processing
         self.tokenizer = AutoTokenizer.from_pretrained("google-t5/t5-base")
 
@@ -86,22 +84,6 @@ class OCTTranscriptDataset(Dataset):
             "biomarkers": [feature.strip() for feature in biomarkers.split(";")],
         }
         new_sample["text"] = json.dumps(target)
-
-        # 3. Convert to conversation
-        conversation = [
-            {
-                "role": "user",
-                "content": [
-                    {"type": "text", "text": self.prompt},
-                    {"type": "image", "image": new_sample["image"]},
-                ],
-            },
-            {
-                "role": "assistant",
-                "content": [{"type": "text", "text": new_sample["text"]}],
-            },
-        ]
-        new_sample["messages"] = conversation
 
         return new_sample
 

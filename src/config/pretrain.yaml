@@ -5,10 +5,10 @@ hydra:
 
 data:
   path: /content/RetinalOCT_Dataset/RetinalOCT_Dataset
-  prompt: ${model.prompt}
 
 model:
-  prompt: Analyze this retinal OCT scan and provide a diagnosis and a list of key biomarkers in JSON format.
+  system_prompt: You are an expert ophthalmic diagnostic assistant. Your sole purpose is to analyze retinal OCT scans and return your findings in a strict JSON format.
+  user_prompt: Analyze this retinal OCT scan and provide a diagnosis and a list of key biomarkers in JSON format.
   from_checkpoint: False
   name: unsloth/medgemma-4b-it-unsloth-bnb-4bit
   path: /content/${model.name}-pretrained
