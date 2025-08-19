@@ -1,6 +1,7 @@
 import logging
 import random
 from tqdm import tqdm
+import numpy as np
 import evaluate
 import nltk
 import json
@@ -27,6 +28,8 @@ class Evaluator:
         self.bleu = evaluate.load("bleu")
         self.meteor = evaluate.load("meteor")
         self.rouge = evaluate.load("rouge")
+        self.bert = evaluate.load("bertscore")
+
 
         # Set model to inference mode
         self.model.inference_mode()
@@ -88,6 +91,8 @@ class Evaluator:
             predictions=all_predicted_texts, references=all_reference_texts
         )
 
+        bert_scores = bertscore.compute(predictions=predictions, references=references, lang="en")
+
         accuracy = (
             (correct_predictions / total_predictions) * 100
             if total_predictions > 0
@@ -96,8 +101,9 @@ class Evaluator:
 
         logger.info(f"Classification Accuracy: {accuracy:.2f}%")
         logger.info(
-            f"Text Metrics -  BLEU: {bleu_score['bleu']:.4f}, METEOR: {meteor_score['meteor']:.4f}, ROUGE-L: {rouge_scores['rougeL']:.4f}"
+            f"Lexical Metrics -  BLEU: {bleu_score['bleu']:.4f}, METEOR: {meteor_score['meteor']:.4f}, ROUGE-L: {rouge_scores['rougeL']:.4f}"
         )
+        logger.info(f"Semantic Metrics - BERT: {np.mean(bert_scores['f1']):.4f}")
 
     def generate(self, dataset, num_samples=5):
         """Generates and prints predictions for a small sample of images from the input dataset."""

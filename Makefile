@@ -3,6 +3,7 @@ PYTHON = uv run
 .PHONY: install
 install:
 	uv sync --all-groups
+	uv add bert_score
 
 .PHONY: pretrain
 pretrain:
