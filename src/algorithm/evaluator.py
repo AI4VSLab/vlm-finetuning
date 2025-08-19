@@ -147,10 +147,14 @@ class Evaluator:
 
         logger.info("Train dataset Evaluation: ")
         self.evaluate(self.data.train_data, num_samples=eval_samples)
+
+        logger.info("Train dataset Generation: ")
         self.generate(self.data.train_data, num_samples=gen_samples)
 
         logger.info("Test dataset Evaluation: ")
         self.evaluate(self.data.test_data, num_samples=eval_samples)
+
+        logger.info("Test dataset Generation: ")
         self.generate(self.data.test_data, num_samples=gen_samples)
 
         logger.info("Evaluation completed.")
