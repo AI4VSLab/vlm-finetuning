@@ -19,7 +19,6 @@ dependencies = [
     "unsloth~=2025.7",
     "evaluate",
     "rouge_score",
-    "bert_score",
     "nltk",
     "wandb",
 ]
