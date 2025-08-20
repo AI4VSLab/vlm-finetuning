@@ -8,17 +8,10 @@ data:
   test_path: /content/OCT_Test
 
 model:
-  system_prompt: You are an expert ophthalmic diagnostic assistant. Your sole purpose is to analyze retinal OCT scans and return your findings in a strict JSON format.
+  system_prompt: You are an expert ophthalmic diagnostic assistant. Your sole purpose is to analyze retinal OCT scans and return your primary diagnosis and findings.
   user_prompt: |
-    Analyze this retinal OCT scan. Respond ONLY with a valid JSON object that adheres to the following schema. Do not include any other text or explanations.
-
-    Example Format:
-    {
-      "diagnosis": "string",
-      "biomarkers": [
-        "string"
-      ]
-    }
+    Analyze this retinal OCT scan. Respond with an output that STRICTLY adheres to the below schema. Do not include ANY other text, fields, or explanations.
+    Format: '{"diagnosis": "primary diagnosis", "biomarkers": ["list all features or biomarkers in the oct image"]}'
   from_checkpoint: False
   name: unsloth/medgemma-4b-it-unsloth-bnb-4bit
   path: /content/models/unsloth/medgemma-4b-it-stage3-finetuned

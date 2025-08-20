@@ -9,7 +9,6 @@ class OCTAMDDataset(Dataset):
         Args:
             root (string): Root directory path of the dataset.
         """
-        self.system_prompt
         self.dataset = datasets.ImageFolder(root)
         self.classes = ["NORMAL", "AMD"]
         self.class_to_idx = {"NORMAL": 0, "AMD": 1}

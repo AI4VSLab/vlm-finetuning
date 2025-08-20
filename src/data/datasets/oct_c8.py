@@ -18,14 +18,13 @@ class OCTC8Dataset(Dataset):
 
         # Dictionary to map class names to descriptions
         self.class_descriptions = {
-            "AMD": "Age-related Macular Degeneration",
-            "CNV": "Choroidal Neovascularization",
-            "CSR": "Central Serous Retinopathy",
-            "DME": "Diabetic Macular Edema",
-            "DR": "Diabetic Retinopathy",
-            "DRUSEN": "Yellow deposits under the retina",
-            "MH": "Macular Hole",
-            "NORMAL": "Healthy eyes with no abnormalities",
+            "AMD": "Wet Age-related Macular Degeneration (AMD)",
+            "CSR": "Central Serous Retinopathy (CSR)",
+            "DME": "Diabetic Macular Edema (DME)",
+            "DR": "Diabetic Retinopathy (DR)",
+            "DRUSEN": "Dry Age-related Macular Degeneration (DRUSEN)",
+            "MH": "Macular Hole (MH)",
+            "NORMAL": "Healthy eyes with no abnormalities (NORMAL)",
         }
 
         # Define augmentations for the training split
@@ -55,6 +54,7 @@ class OCTC8Dataset(Dataset):
         # 1. Get the raw image and label from the internal ImageFolder dataset
         image, label_idx = self.dataset[idx]
         label_name = self.classes[label_idx]
+        label_name = "AMD" if label_name == "CNV" else label_name
 
         # 2. Apply augmentations
         image = self.augmentations(image)
@@ -67,8 +67,7 @@ class OCTC8Dataset(Dataset):
             label_name, label_name
         )  # Get description, default to class name if not found
         target = {
-            "diagnosis": f"{diagnosis_description} ({label_name})",
-            "biomarkers": [],  # No biomarkers in this dataset
+            "diagnosis": diagnosis_description
         }
         text_output = json.dumps(target)
 
