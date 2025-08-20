@@ -85,6 +85,7 @@ class VisionLanguageModel:
                 max_new_tokens=128,
                 use_cache=True,
                 do_sample=False,
+                repetition_penalty=1.15,
                 )
             return ""  # Streamer prints, so return empty string or None
         else:
@@ -93,6 +94,7 @@ class VisionLanguageModel:
                 max_new_tokens=128,
                 use_cache=True,
                 do_sample=False,
+                repetition_penalty=1.15,
                 )
             # Decode only the newly generated tokens (excluding the prompt)
             decoded_output = self.processor.decode(
