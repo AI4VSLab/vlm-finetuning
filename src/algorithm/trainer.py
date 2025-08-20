@@ -25,7 +25,9 @@ class Trainer:
             gradient_checkpointing=True,                # use gradient checkpointing to save memory
             optim="adamw_torch_fused",                  # use fused adamw optimizer
             logging_steps=1,                            # log every 5 steps
-            save_strategy="epoch",                      # save checkpoint every epoch
+            # save_strategy="epoch",                      # save checkpoint every epoch
+            save_steps=1000,     # Save less frequently
+            save_total_limit=2,  # Keep only 2 most recent checkpoints
             learning_rate=2e-4,                         # learning rate, based on QLoRA paper
             bf16=True,                                  # use bfloat16 precision
             max_grad_norm=0.3,                          # max gradient norm based on QLoRA paper
