@@ -12,9 +12,9 @@ model:
   user_prompt: |
     Analyze this retinal OCT scan. Respond with an output that STRICTLY adheres to the below schema. Do not include ANY other text, fields, or explanations.
     Format: '{"diagnosis": "primary diagnosis", "biomarkers": ["list all features or biomarkers in the oct image"]}'
-  from_checkpoint: False
+  from_checkpoint: True
   name: unsloth/medgemma-4b-it-unsloth-bnb-4bit
-  path: /content/models/unsloth/medgemma-4b-it-stage3-finetuned
+  path: /content/1-medgemma-octc8-only
   lora:
     r: 8 # The larger, the higher the accuracy, but might overfit
     alpha: 16 # Recommended alpha == r at least
