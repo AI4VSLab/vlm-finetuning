@@ -15,13 +15,13 @@ class VisionLanguageModel:
         logger.info("Model created.")
 
     def save(self):
-        self.model.save_pretrained(self.config.path)
-        self.processor.save_pretrained(self.config.path)
+        self.model.save_pretrained(self.config.save_path)
+        self.processor.save_pretrained(self.config.save_path)
 
     def load(self):
         if self.config.from_checkpoint:
             model, processor = FastVisionModel.from_pretrained(
-                model_name=self.config.path,  # YOUR MODEL YOU USED FOR TRAINING
+                model_name=self.config.checkpoint_path,  # YOUR MODEL YOU USED FOR TRAINING
                 load_in_4bit=True,  # Set to False for 16bit LoRA
             )
         else:
