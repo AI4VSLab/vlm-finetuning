@@ -1,6 +1,8 @@
 import logging
 import torch
+import json
 import numpy as np
+from torchvision import transforms
 from PIL import Image as PILImage
 from transformers import AutoTokenizer
 from tfrecord.torch.dataset import TFRecordDataset
@@ -18,6 +20,21 @@ class OCTExpertData:
 
         # Initialize the tokenizer for text processing
         self.tokenizer = AutoTokenizer.from_pretrained("google-t5/t5-base")
+
+        self.augmentations = transforms.Compose([
+            transforms.RandomHorizontalFlip(p=0.5),
+            transforms.RandomAffine(
+                degrees=5,
+                translate=(0.05, 0.05),
+                scale=(0.95, 1.05),
+            ),
+            transforms.ColorJitter(brightness=0.2, contrast=0.2),
+        ])
+
+        self.class_descriptions = {
+            "AMD": "Age-related Macular Degeneration",
+            "NORMAL": "Healthy eyes with no abnormalities",
+        }
 
         # Define the TFRecord schema description. This must match how the TFRecord
         # files were generated.
@@ -66,13 +83,40 @@ class OCTExpertData:
             image = np.zeros_like(image) # If all pixels are same, create a black image
 
         image = image.astype(np.uint8)
-        new_sample["image"] = PILImage.fromarray(image)
+        new_sample["image"] = self.augmentations(PILImage.fromarray(image))
 
         # 2. Text Decoding: Convert input_ids and attention_mask back to text
+        # input_ids = torch.tensor(sample["input_ids"], dtype=torch.long)
+        # attn_mask = torch.tensor(sample["attn_mask"], dtype=torch.long)
+        # decoded_text = self.tokenizer.decode(input_ids, attention_mask=attn_mask, skip_special_tokens=True)
+
+        # Handle multiple versions if they exist
         input_ids = torch.tensor(sample["input_ids"], dtype=torch.long)
         attn_mask = torch.tensor(sample["attn_mask"], dtype=torch.long)
+
+        # Check if data has multiple versions (reshape to 8 versions)
+        try:
+            input_ids = input_ids.reshape(8, -1)
+            attn_mask = attn_mask.reshape(8, -1)
+            # Randomly select one version
+            selected_version = torch.randint(0, 8, (1,)).item()
+            input_ids = input_ids[selected_version]
+            attn_mask = attn_mask[selected_version]
+        except:
+            # If reshape fails, use original single version
+            pass
+
         decoded_text = self.tokenizer.decode(input_ids, attention_mask=attn_mask, skip_special_tokens=True)
-        new_sample["text"] = decoded_text
+
+        # new_sample["text"] = decoded_text
+
+        # Create structured output like reference
+        diagnosis_description = self.class_descriptions.get("AMD" if label == 1 else "NORMAL", "Unknown")
+        target = {
+            "diagnosis": f"{diagnosis_description} ({'AMD' if label == 1 else 'NORMAL'})",
+            "biomarkers": [feature.strip() for feature in decoded_text.split(";")]
+        }
+        new_sample["text"] = json.dumps(target)
 
         # 3. Label Processing: Convert byte string label to integer (0 or 1)
         class_str = sample["class"].decode('utf-8')

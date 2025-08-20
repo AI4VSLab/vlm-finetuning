@@ -40,7 +40,7 @@ def check_gemma_structure():
     try:
         # Load the model
         model = AutoModelForImageTextToText.from_pretrained(model_id, **model_kwargs)
-        print("✅ Model loaded successfully!")
+        print("Model loaded successfully!")
         
         print("\n" + "="*50)
         print("SEARCHING FOR IMAGE/VISION COMPONENTS:")
@@ -55,9 +55,9 @@ def check_gemma_structure():
         if vision_modules:
             print("Found vision-related modules:")
             for name, module_type in vision_modules:
-                print(f"  📷 {name}: {module_type}")
+                print(f"  {name}: {module_type}")
         else:
-            print("❌ No vision modules found with keywords: vision, image, siglip")
+            print("No vision modules found with keywords: vision, image, siglip")
         
         print("\n" + "="*50)
         print("TOP-LEVEL MODEL ATTRIBUTES:")
@@ -73,9 +73,9 @@ def check_gemma_structure():
             print("Found vision-related attributes:")
             for attr in vision_attrs:
                 attr_type = type(getattr(model, attr)).__name__
-                print(f"  🔍 {attr}: {attr_type}")
+                print(f"  {attr}: {attr_type}")
         else:
-            print("❌ No vision attributes found")
+            print("No vision attributes found")
         
         print("\n" + "="*50)
         print("ALL TOP-LEVEL ATTRIBUTES (first 10):")
@@ -85,7 +85,7 @@ def check_gemma_structure():
         all_attrs = [attr for attr in dir(model) if not attr.startswith('_')][:10]
         for attr in all_attrs:
             attr_type = type(getattr(model, attr)).__name__
-            print(f"  📋 {attr}: {attr_type}")
+            print(f"  {attr}: {attr_type}")
         
         print(f"\n... and {len([attr for attr in dir(model) if not attr.startswith('_')]) - 10} more attributes")
         
@@ -100,12 +100,12 @@ def check_gemma_structure():
             if vision_config_keys:
                 print("Vision-related config keys:")
                 for key in vision_config_keys:
-                    print(f"  ⚙️ {key}: {config_dict[key]}")
+                    print(f"  {key}: {config_dict[key]}")
             else:
                 print("No vision-related keys found in config")
         
     except Exception as e:
-        print(f"❌ Error loading model: {e}")
+        print(f"Error loading model: {e}")
         print("This might be due to insufficient GPU memory or missing dependencies")
         return
     

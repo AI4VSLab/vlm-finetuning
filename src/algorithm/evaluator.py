@@ -30,7 +30,7 @@ class Evaluator:
         predictions = []
         references = []
 
-        for i, idx in enumerate(tqdm(sample_indices_for_accuracy, desc="Evaluating Train Data Accuracy")):
+        for i, idx in enumerate(tqdm(sample_indices, desc="Evaluating Train Data Accuracy")):
             sample = all_train_samples[idx]
             image = sample["image"]
 

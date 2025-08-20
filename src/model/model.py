@@ -47,7 +47,7 @@ class VisionLanguageModel:
         model.vision_tower.load_state_dict(siglip_checkpoint['image_encoder_state_dict'])
 
         # Freeze the image encoder if you don't want to fine-tune it further
-        for param in model.vision_model.parameters():
+        for param in model.vision_tower.parameters():
             param.requires_grad = False
         
         print(f"[INFO] Loaded SigLIP encoder from {siglip_checkpoint_path} and replaced Gemma's vision tower (image encoder).")

@@ -9,6 +9,8 @@ system:
 data:
   train_path: /content/VQA_v2.tfrecord
   test_path: /content/OCT_test_dataset
+  use_augmentation: true
+  augmentation_prob: 0.5
 
 model:
   model_id: google/gemma-3-4b-pt
