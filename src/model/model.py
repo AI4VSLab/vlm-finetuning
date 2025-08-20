@@ -76,6 +76,7 @@ class VisionLanguageModel:
             return_tensors="pt",
         ).to("cuda")
 
+        # greedy decoding
         if use_streamer:
             text_streamer = TextStreamer(self.processor, skip_prompt=True)
             self.model.generate(
@@ -83,20 +84,16 @@ class VisionLanguageModel:
                 streamer=text_streamer,
                 max_new_tokens=128,
                 use_cache=True,
-                temperature=1.0,
-                top_p=0.95,
-                top_k=64,
-            )
+                do_sample=False,
+                )
             return ""  # Streamer prints, so return empty string or None
         else:
             outputs = self.model.generate(
                 **inputs,
                 max_new_tokens=128,
                 use_cache=True,
-                temperature=1.0,
-                top_p=0.95,
-                top_k=64,
-            )
+                do_sample=False,
+                )
             # Decode only the newly generated tokens (excluding the prompt)
             decoded_output = self.processor.decode(
                 outputs[0][inputs["input_ids"].shape[1] :], skip_special_tokens=True

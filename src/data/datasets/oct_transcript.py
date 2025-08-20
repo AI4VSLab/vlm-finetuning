@@ -37,8 +37,8 @@ class OCTTranscriptDataset(Dataset):
         )
 
         self.class_descriptions = {
-            "AMD": "Age-related Macular Degeneration",
-            "NORMAL": "Healthy eyes with no abnormalities",
+            "AMD": "Wet Age-related Macular Degeneration (AMD)",
+            "NORMAL": "Healthy eyes with no abnormalities (NORMAL)",
         }
 
         # Define the TFRecord schema description. This must match how the TFRecord
@@ -80,7 +80,7 @@ class OCTTranscriptDataset(Dataset):
         label = sample["label"]
         diagnosis_description = self.class_descriptions.get(label, label)
         target = {
-            "diagnosis": f"{diagnosis_description} ({label})",
+            "diagnosis": diagnosis_description,
             "biomarkers": [feature.strip() for feature in biomarkers.split(";")],
         }
         new_sample["text"] = json.dumps(target)

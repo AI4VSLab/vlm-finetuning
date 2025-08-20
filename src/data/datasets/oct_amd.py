@@ -15,8 +15,8 @@ class OCTAMDDataset(Dataset):
 
         # Dictionary to map class names to descriptions
         self.class_descriptions = {
-            "AMD": "Age-related Macular Degeneration",
-            "NORMAL": "Healthy eyes with no abnormalities",
+            "AMD": "Wet Age-related Macular Degeneration (AMD)",
+            "NORMAL": "Healthy eyes with no abnormalities (NORMAL)",
         }
 
     def __len__(self):
@@ -32,7 +32,7 @@ class OCTAMDDataset(Dataset):
             label_name, label_name
         )  # Get description, default to class name if not found
         target = {
-            "diagnosis": f"{diagnosis_description} ({label_name})",
+            "diagnosis": diagnosis_description,
             "biomarkers": [],  # No biomarkers in this dataset
         }
         text_output = json.dumps(target)
