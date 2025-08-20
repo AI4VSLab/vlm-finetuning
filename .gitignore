@@ -181,7 +181,10 @@ outputs/
 dataset/
 
 # <Changes: Kavin> Folders
+content/
 OCT_test_dataset/
+gemma-product-description/
+outputs/
 xinxin_tfrecord_files/
 
 # <Changes: Kavin> Files

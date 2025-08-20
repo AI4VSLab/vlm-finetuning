@@ -1,6 +1,10 @@
 import logging
 from trl import SFTTrainer, SFTConfig
 
+# Force single GPU training
+import os
+os.environ["CUDA_VISIBLE_DEVICES"] = "0"
+
 logger = logging.getLogger(__name__)
 
 
@@ -27,12 +31,16 @@ class Trainer:
             max_grad_norm=0.3,                          # max gradient norm based on QLoRA paper
             warmup_ratio=0.03,                          # warmup ratio based on QLoRA paper
             lr_scheduler_type="constant",               # use constant learning rate scheduler
-            push_to_hub=False,                           # push model to hub                   # report metrics to tensorboard
+            push_to_hub=False,                          # push model to hub                   # report metrics to tensorboard
+            dataloader_num_workers=0,                   # Add this to avoid multiprocessing issues
             gradient_checkpointing_kwargs={
                 "use_reentrant": False
             },  # use reentrant checkpointing
             dataset_text_field="",                      # need a dummy field for collator
             dataset_kwargs={"skip_prepare_dataset": True},  # important for collator
+            # Force single GPU training
+            ddp_find_unused_parameters=False,
+            dataloader_pin_memory=False,
         )
         args.remove_unused_columns = False # important for collator
 

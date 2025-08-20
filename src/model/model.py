@@ -1,5 +1,6 @@
 import torch
 import torch.nn as nn
+import torch.nn.functional as F
 from data import DataCollator
 from transformers import AutoProcessor, AutoModelForImageTextToText, BitsAndBytesConfig, SiglipVisionModel, TextStreamer
 from peft import LoraConfig, get_peft_model
@@ -36,20 +37,32 @@ class VisionLanguageModel:
         model_kwargs = dict(
             attn_implementation="eager", # Use "flash_attention_2" when running on Ampere or newer GPU
             torch_dtype=torch.bfloat16, # What torch dtype to use, defaults to auto
-            device_map="auto", # Let torch decide how to load the model
+            # device_map="auto", # Let torch decide how to load the model
+            device_map={'': torch.cuda.current_device()},  # Correct format for quantized training
         )
 
         # BitsAndBytesConfig int-4 config
-        model_kwargs["quantization_config"] = BitsAndBytesConfig(
-            load_in_4bit=True,
-            bnb_4bit_use_double_quant=True,
-            bnb_4bit_quant_type="nf4",
-            bnb_4bit_compute_dtype=model_kwargs["torch_dtype"],
-            bnb_4bit_quant_storage=model_kwargs["torch_dtype"],
-        )
+        # model_kwargs["quantization_config"] = BitsAndBytesConfig(
+        #     load_in_4bit=True,
+        #     bnb_4bit_use_double_quant=True,
+        #     bnb_4bit_quant_type="nf4",
+        #     bnb_4bit_compute_dtype=model_kwargs["torch_dtype"],
+        #     bnb_4bit_quant_storage=model_kwargs["torch_dtype"],
+        # )
 
         # Load model and tokenizer
         model = AutoModelForImageTextToText.from_pretrained(model_id, **model_kwargs)
+
+        # Convert all multi-modal projector components to bfloat16
+        if hasattr(model, 'multi_modal_projector'):
+            for param in model.multi_modal_projector.parameters():
+                if param.dtype == torch.float32:
+                    param.data = param.data.to(torch.bfloat16)
+            
+            # Also convert named weights specifically
+            for name, param in model.multi_modal_projector.named_parameters():
+                if param.dtype == torch.float32:
+                    param.data = param.data.to(torch.bfloat16)
 
         # Add adaptive normalization layer
         # self.siglip_vision = SiglipVisionModel.from_pretrained("google/siglip-so400m-patch14-384")
@@ -57,6 +70,9 @@ class VisionLanguageModel:
         siglip_output_dim = 1152  # From your SigLIP checkpoint shapes
         gemma_vision_dim = model.vision_tower.config.hidden_size  # Gemma 3's expected dimension
         self.adaptive_norm = AdaptiveNormalizationLayer(siglip_output_dim, gemma_vision_dim)
+       
+        # Move adaptive layer to the same device AND dtype as the model
+        self.adaptive_norm = self.adaptive_norm.to(device=device, dtype=torch.bfloat16)
 
         # Load the trained SigLIP image encoder
         siglip_checkpoint_path = config.siglip_checkpoint_path  # From config.yaml instead of hardcoded path
@@ -82,6 +98,10 @@ class VisionLanguageModel:
             self.siglip_vision.load_state_dict(siglip_vision_state_dict, strict=False)
         else:
             print("No image encoder found in checkpoint, skipping SigLIP loading")
+        
+        # Convert SigLIP model to same dtype as main model (bfloat16)
+        self.siglip_vision = self.siglip_vision.to(torch.bfloat16)
+        self.siglip_vision = self.siglip_vision.to(device)
 
         # Replace Gemma's vision tower (image encoder) with the trained SigLIP encoder
         # model.vision_tower.load_state_dict(siglip_checkpoint['image_encoder_state_dict'])
@@ -96,10 +116,31 @@ class VisionLanguageModel:
         original_vision_forward = model.vision_tower.forward
 
         def custom_vision_forward(pixel_values, **kwargs):
-            # Use SigLIP for feature extraction
-            siglip_features = self.siglip_vision(pixel_values).last_hidden_state
-            # Apply adaptive normalization
+            # Resize input to match SigLIP's expected input size (384x384)
+            resized_pixel_values = F.interpolate(
+                pixel_values, 
+                size=(384, 384), 
+                mode='bilinear', 
+                align_corners=False
+            )
+            
+            # Use SigLIP for feature extraction - shape: [batch, 729, 1152]
+            siglip_features = self.siglip_vision(resized_pixel_values).last_hidden_state
+            
+            # Apply adaptive normalization - still shape: [batch, 729, 1152]
             adapted_features = self.adaptive_norm(siglip_features)
+            
+            # Reshape to match Gemma3's expected format: [batch, 4096, 1152]
+            # Interpolate from 729 patches to 4096 patches
+            batch_size = adapted_features.shape[0]
+            adapted_features = adapted_features.transpose(1, 2)  # [batch, 1152, 729]
+            adapted_features = adapted_features.view(batch_size, 1152, 27, 27)  # [batch, 1152, 27, 27]
+            adapted_features = F.interpolate(adapted_features, size=(64, 64), mode='bilinear', align_corners=False)  # [batch, 1152, 64, 64]
+            adapted_features = adapted_features.view(batch_size, 1152, 4096).transpose(1, 2)  # [batch, 4096, 1152]
+
+            # Ensure final output is in correct dtype (bfloat16)
+            adapted_features = adapted_features.to(dtype=torch.bfloat16)
+            
             return type('VisionOutput', (), {'last_hidden_state': adapted_features})()
 
         model.vision_tower.forward = custom_vision_forward
@@ -119,6 +160,10 @@ class VisionLanguageModel:
             ],
         )
         peft_model = get_peft_model(model, peft_config)
+
+        # Ensure all multi-modal components are in bfloat16
+        if hasattr(peft_model.base_model.model, 'multi_modal_projector'):
+            peft_model.base_model.model.multi_modal_projector = peft_model.base_model.model.multi_modal_projector.to(torch.bfloat16)
 
         self.prompt = config.prompt
         self.model = peft_model

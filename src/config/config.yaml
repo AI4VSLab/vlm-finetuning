@@ -4,7 +4,7 @@ hydra:
       level: INFO
 
 system:
-  device: cuda
+  device: cuda:0
 
 data:
   train_path: /home/kavin/vlm-finetuning/content/VQA_v2.tfrecord
@@ -19,8 +19,8 @@ model:
 
 trainer:
   num_epochs: 10
-  batch_size: 8
-  grad_accum_steps: 1
+  batch_size: 4
+  grad_accum_steps: 2
 
 evaluator:
   num_samples: 50
