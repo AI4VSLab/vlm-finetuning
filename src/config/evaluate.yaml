@@ -8,13 +8,16 @@ data:
   test_path: /content/OCT_Test
 
 model:
-  prompt: Analyze this retinal OCT scan and provide a diagnosis and a list of key biomarkers in JSON format.
-  from_checkpoint: False
+  system_prompt: You are an expert ophthalmic diagnostic assistant. Your sole purpose is to analyze retinal OCT scans and return your primary diagnosis and findings.
+  user_prompt: |
+    Analyze this retinal OCT scan. Respond with an output that STRICTLY adheres to the below schema. Do not include ANY other text, fields, or explanations.
+    Format: '{"diagnosis": "primary diagnosis"}'
+  from_checkpoint: True
   name: unsloth/medgemma-4b-it-unsloth-bnb-4bit
-  path: /content/${model.name}-pretrained
+  path: /content/1-medgemma-octc8-only
   lora:
     r: 16 # The larger, the higher the accuracy, but might overfit
-    alpha: 16 # Recommended alpha == r at least
+    alpha: 32 # Recommended alpha == r at least
     dropout: 0.05
 
 evaluator:
