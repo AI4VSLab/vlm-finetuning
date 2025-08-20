@@ -7,8 +7,8 @@ system:
   device: cuda
 
 data:
-  train_path: /content/VQA_v2.tfrecord
-  test_path: /content/OCT_test_dataset
+  train_path: /home/kavin/vlm-finetuning/content/VQA_v2.tfrecord
+  test_path: /home/kavin/vlm-finetuning/content/OCT_test_dataset
   use_augmentation: true
   augmentation_prob: 0.5
 

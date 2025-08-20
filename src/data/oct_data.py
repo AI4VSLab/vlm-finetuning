@@ -85,7 +85,12 @@ class OCTExpertData:
         image = image.astype(np.uint8)
         new_sample["image"] = self.augmentations(PILImage.fromarray(image))
 
-        # 2. Text Decoding: Convert input_ids and attention_mask back to text
+        # 2. Label Processing: Convert byte string label to integer (0 or 1)
+        class_str = sample["class"].decode('utf-8')
+        label = 0 if class_str == 'n' else 1 # 'n' for normal (0), 'a' for AMD (1)
+        new_sample["label"] = label
+
+        # 3. Text Decoding: Convert input_ids and attention_mask back to text
         # input_ids = torch.tensor(sample["input_ids"], dtype=torch.long)
         # attn_mask = torch.tensor(sample["attn_mask"], dtype=torch.long)
         # decoded_text = self.tokenizer.decode(input_ids, attention_mask=attn_mask, skip_special_tokens=True)
@@ -117,11 +122,6 @@ class OCTExpertData:
             "biomarkers": [feature.strip() for feature in decoded_text.split(";")]
         }
         new_sample["text"] = json.dumps(target)
-
-        # 3. Label Processing: Convert byte string label to integer (0 or 1)
-        class_str = sample["class"].decode('utf-8')
-        label = 0 if class_str == 'n' else 1 # 'n' for normal (0), 'a' for AMD (1)
-        new_sample["label"] = label
 
         return new_sample
 

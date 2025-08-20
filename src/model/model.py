@@ -1,11 +1,23 @@
 import torch
+import torch.nn as nn
 from data import DataCollator
-from transformers import AutoProcessor, AutoModelForImageTextToText, BitsAndBytesConfig, TextStreamer
+from transformers import AutoProcessor, AutoModelForImageTextToText, BitsAndBytesConfig, SiglipVisionModel, TextStreamer
 from peft import LoraConfig, get_peft_model
 import logging
 
 logger = logging.getLogger(__name__)
 
+class AdaptiveNormalizationLayer(nn.Module):
+    def __init__(self, input_dim, output_dim, hidden_dim=512):
+        super().__init__()
+        self.layer_norm = nn.LayerNorm(input_dim)
+        self.projection = nn.Linear(input_dim, output_dim)
+        self.activation = nn.GELU()
+        
+    def forward(self, x):
+        x = self.layer_norm(x)
+        x = self.projection(x)
+        return self.activation(x)
 
 class VisionLanguageModel:
     def __init__(self, config, device):
@@ -39,18 +51,58 @@ class VisionLanguageModel:
         # Load model and tokenizer
         model = AutoModelForImageTextToText.from_pretrained(model_id, **model_kwargs)
 
+        # Add adaptive normalization layer
+        # self.siglip_vision = SiglipVisionModel.from_pretrained("google/siglip-so400m-patch14-384")
+        # siglip_output_dim = self.siglip_vision.config.hidden_size
+        siglip_output_dim = 1152  # From your SigLIP checkpoint shapes
+        gemma_vision_dim = model.vision_tower.config.hidden_size  # Gemma 3's expected dimension
+        self.adaptive_norm = AdaptiveNormalizationLayer(siglip_output_dim, gemma_vision_dim)
+
         # Load the trained SigLIP image encoder
         siglip_checkpoint_path = config.siglip_checkpoint_path  # From config.yaml instead of hardcoded path
         siglip_checkpoint = torch.load(siglip_checkpoint_path, map_location=device)
 
+        # DEBUG: Print available keys
+        print("Available keys in checkpoint:")
+        print(list(siglip_checkpoint.keys()))
+
+        # # Extract only vision/image encoder parts from model_state_dict
+        # full_state_dict = siglip_checkpoint['model_state_dict']
+        # vision_state_dict = {k.replace('image_encoder.', ''): v for k, v in full_state_dict.items() if 'image_encoder' in k}
+        # if vision_state_dict:
+        #     model.vision_tower.load_state_dict(vision_state_dict, strict=False)
+        # else:
+        #     print("No image encoder found in checkpoint, skipping SigLIP loading")
+        
+        # Create separate SigLIP vision model for feature extraction
+        self.siglip_vision = SiglipVisionModel.from_pretrained("google/siglip-so400m-patch14-384")
+        siglip_full_state_dict = siglip_checkpoint['model_state_dict']
+        siglip_vision_state_dict = {k.replace('image_encoder.', ''): v for k, v in siglip_full_state_dict.items() if 'image_encoder' in k}
+        if siglip_vision_state_dict:
+            self.siglip_vision.load_state_dict(siglip_vision_state_dict, strict=False)
+        else:
+            print("No image encoder found in checkpoint, skipping SigLIP loading")
+
         # Replace Gemma's vision tower (image encoder) with the trained SigLIP encoder
-        model.vision_tower.load_state_dict(siglip_checkpoint['image_encoder_state_dict'])
+        # model.vision_tower.load_state_dict(siglip_checkpoint['image_encoder_state_dict'])
 
         # Freeze the image encoder if you don't want to fine-tune it further
         for param in model.vision_tower.parameters():
             param.requires_grad = False
         
         print(f"[INFO] Loaded SigLIP encoder from {siglip_checkpoint_path} and replaced Gemma's vision tower (image encoder).")
+
+        # Store original vision tower forward
+        original_vision_forward = model.vision_tower.forward
+
+        def custom_vision_forward(pixel_values, **kwargs):
+            # Use SigLIP for feature extraction
+            siglip_features = self.siglip_vision(pixel_values).last_hidden_state
+            # Apply adaptive normalization
+            adapted_features = self.adaptive_norm(siglip_features)
+            return type('VisionOutput', (), {'last_hidden_state': adapted_features})()
+
+        model.vision_tower.forward = custom_vision_forward
 
         processor = AutoProcessor.from_pretrained("google/gemma-3-4b-it")
 
