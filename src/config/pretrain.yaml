@@ -15,18 +15,18 @@ model:
   from_checkpoint: False
   checkpoint_path: null
   name: unsloth/medgemma-4b-it-unsloth-bnb-4bit
-  save_path: /content/1-medgemma-octc8-only
+  save_path: /content/1-medgemma-binary-oct
   lora:
     r: 16 # The larger, the higher the accuracy, but might overfit
     alpha: 32 # Recommended alpha == r at least
     dropout: 0.05
 
 trainer:
-  num_epochs: 1
+  num_epochs: 3
   batch_size: 64
-  grad_accum_steps: 1
-  learning_rate: 1e-4
+  grad_accum_steps: 4
+  learning_rate: 5e-5
 
 evaluator:
-  eval_samples: 50
+  eval_samples: 200
   gen_samples: 5
