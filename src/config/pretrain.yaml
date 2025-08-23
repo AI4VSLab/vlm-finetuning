@@ -23,7 +23,7 @@ model:
 
 trainer:
   num_epochs: 3
-  batch_size: 64
+  batch_size: 56
   grad_accum_steps: 4
   learning_rate: 5e-5
 
