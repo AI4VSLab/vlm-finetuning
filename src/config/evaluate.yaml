@@ -22,5 +22,5 @@ model:
     dropout: 0.05
 
 evaluator:
-  eval_samples: 50
+  eval_samples: 100
   gen_samples: 5
