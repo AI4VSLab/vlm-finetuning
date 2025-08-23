@@ -10,12 +10,12 @@ class OCTAMDDataset(Dataset):
             root (string): Root directory path of the dataset.
         """
         self.dataset = datasets.ImageFolder(root)
-        self.classes = ["NORMAL", "AMD"]
-        self.class_to_idx = {"NORMAL": 0, "AMD": 1}
+        self.classes = ["NORMAL", "CNV"]
+        self.class_to_idx = {"NORMAL": 0, "CNV": 1}
 
         # Dictionary to map class names to descriptions
         self.class_descriptions = {
-            "AMD": "Wet Age-related Macular Degeneration (AMD)",
+            "CNV": "Wet Age-related Macular Degeneration (CNV)",
             "NORMAL": "Healthy eyes with no abnormalities (NORMAL)",
         }
 

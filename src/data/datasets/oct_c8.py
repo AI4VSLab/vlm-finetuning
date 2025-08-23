@@ -18,7 +18,8 @@ class OCTC8Dataset(Dataset):
 
         # Dictionary to map class names to descriptions
         self.class_descriptions = {
-            "AMD": "Wet Age-related Macular Degeneration (AMD)",
+            "AMD": "Age-related Macular Degeneration (AMD)",
+            "CNV": "Wet Age-related Macular Degeneration (CNV)",
             "CSR": "Central Serous Retinopathy (CSR)",
             "DME": "Diabetic Macular Edema (DME)",
             "DR": "Diabetic Retinopathy (DR)",
@@ -54,7 +55,6 @@ class OCTC8Dataset(Dataset):
         # 1. Get the raw image and label from the internal ImageFolder dataset
         image, label_idx = self.dataset[idx]
         label_name = self.classes[label_idx]
-        label_name = "AMD" if label_name == "CNV" else label_name
 
         # 2. Apply augmentations
         image = self.augmentations(image)

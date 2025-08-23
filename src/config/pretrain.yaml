@@ -4,7 +4,8 @@ hydra:
       level: INFO
 
 data:
-  path: /content/RetinalOCT_Dataset/RetinalOCT_Dataset
+  oct2017_path: /content/OCT2017
+  octc8_path: /content/RetinalOCT_Dataset/RetinalOCT_Dataset
 
 model:
   system_prompt: You are an expert ophthalmic diagnostic assistant. Your sole purpose is to analyze retinal OCT scans and return your primary diagnosis and findings.

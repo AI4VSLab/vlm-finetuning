@@ -37,7 +37,7 @@ class OCTTranscriptDataset(Dataset):
         )
 
         self.class_descriptions = {
-            "AMD": "Wet Age-related Macular Degeneration (AMD)",
+            "CNV": "Wet Age-related Macular Degeneration (CNV)",
             "NORMAL": "Healthy eyes with no abnormalities (NORMAL)",
         }
 
@@ -119,7 +119,7 @@ class OCTTranscriptDataset(Dataset):
         # 3. Label Processing: Convert byte string label to integer (0 or 1)
         class_str = sample["class"].decode("utf-8")
         label = (
-            "NORMAL" if class_str == "n" else "AMD"
+            "NORMAL" if class_str == "n" else "CNV"
         )  # 'n' for normal (0), 'a' for AMD (1)
         new_sample["label"] = label
 
