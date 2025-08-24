@@ -5,7 +5,7 @@ from .datasets import OCTTranscriptDataset, OCT5KDataset, OCTAMDDataset
 logger = logging.getLogger(__name__)
 
 
-class OCTTranscriptData:
+class OCTBiomarkerData:
     def __init__(self, config):
         logger.info("Loading Biomarker Data... ")
         transcript_dataset = OCTTranscriptDataset(config.oct_transcript_path)

@@ -15,20 +15,20 @@ model:
     Analyze this retinal OCT scan. Respond with an output that STRICTLY adheres to the below schema. Do not include ANY other text, fields, or explanations.
     Format: '{"diagnosis": "primary diagnosis", "biomarkers": ["list all features or biomarkers in the oct image"]}'
   from_checkpoint: True
-  checkpoint_path: /content/1-medgemma-octc8-only
+  checkpoint_path: /content/1-medgemma-binary-oct
   name: unsloth/medgemma-4b-it-unsloth-bnb-4bit
   save_path: /content/13-medgemma-octc8-and-transcript
   lora:
-    r: 16 # The larger, the higher the accuracy, but might overfit
-    alpha: 32 # Recommended alpha == r at least
+    r: 8 # The larger, the higher the accuracy, but might overfit
+    alpha: 16 # Recommended alpha == r at least
     dropout: 0.1
 
 trainer:
-  num_epochs: 5
-  batch_size: 8
-  grad_accum_steps: 1
-  learning_rate: 1e-5
+  num_epochs: 1
+  batch_size: 16
+  grad_accum_steps: 2
+  learning_rate: 2e-5
 
 evaluator:
-  eval_samples: 50
+  eval_samples: 100
   gen_samples: 5

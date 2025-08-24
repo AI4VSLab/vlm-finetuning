@@ -1,5 +1,6 @@
-__all__ = ["OCTTranscriptData", "OCTDiagnosisData", "ChatWrapper"]
+__all__ = ["OCTDiagnosisData", "OCTBiomarkerData", "OCTEvaluationData", "ChatWrapper"]
 
 from .diagnosis_data import OCTDiagnosisData
-from .transcript_data import OCTTranscriptData
+from .biomarker_data import OCTBiomarkerData
+from .evaluation_data import OCTEvaluationData
 from .chat_wrapper import ChatWrapper
