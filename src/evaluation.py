@@ -1,6 +1,6 @@
 from algorithm import Evaluator
 from model import VisionLanguageModel
-from data import OCTTranscriptData
+from data import OCTEvaluationData
 
 import logging
 import torch
@@ -33,7 +33,7 @@ def main(config: DictConfig) -> None:
 
     # --- DATA ---
     # For training, use OCTExpertData
-    data = OCTTranscriptData(config.data)
+    data = OCTEvaluationData(config.data)
     print(data.train_data[0])
     print(data.test_data[0])
 

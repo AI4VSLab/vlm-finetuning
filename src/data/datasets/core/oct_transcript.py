@@ -71,9 +71,8 @@ class OCTTranscriptDataset(Dataset):
         new_sample["image"] = self.augmentations(sample["image"])
         new_sample["label"] = sample["label"]
 
-        selected_version = torch.randint(0, 8, (1,)).item()
-        input_ids = sample["input_ids"][selected_version]
-        attn_mask = sample["attn_mask"][selected_version]
+        input_ids = sample["input_ids"]
+        attn_mask = sample["attn_mask"]
         biomarkers = self.tokenizer.decode(
             input_ids, attention_mask=attn_mask, skip_special_tokens=True
         )
@@ -111,8 +110,8 @@ class OCTTranscriptDataset(Dataset):
         new_sample["image"] = image
 
         # 2. Transcript Tokens
-        input_ids = torch.tensor(sample["input_ids"], dtype=torch.long).reshape(8, -1)
-        attn_mask = torch.tensor(sample["attn_mask"], dtype=torch.long).reshape(8, -1)
+        input_ids = torch.tensor(sample["input_ids"], dtype=torch.long)
+        attn_mask = torch.tensor(sample["attn_mask"], dtype=torch.long)
         new_sample["input_ids"] = input_ids
         new_sample["attn_mask"] = attn_mask
 

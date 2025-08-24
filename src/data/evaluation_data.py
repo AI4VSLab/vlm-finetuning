@@ -4,12 +4,12 @@ from .datasets import OCTTranscriptDataset, OCTAMDDataset
 logger = logging.getLogger(__name__)
 
 
-class OCTTranscriptData:
+class OCTEvaluationData:
     def __init__(self, config):
         logger.info("Loading Transcript Data... ")
         self.train_data = OCTTranscriptDataset(config.train_path)
         logger.info(
-            f"Transcript dataset loaded with {len(self.train_data.samples)} images."
+            f"Transcript dataset loaded with {len(self.train_data)} images."
         )
 
         self.test_data = OCTAMDDataset(root=config.test_path)
