@@ -1,7 +1,8 @@
+# amd-vlm-finetuning/src/train.py
 from algorithm import Trainer
 from algorithm import Evaluator
 from model import VisionLanguageModel
-from data import OCTBiomarkerData
+from data import OCTUnifiedData
 
 import logging
 import wandb
@@ -26,7 +27,7 @@ def cleanup():
         wandb.finish()
 
 
-@hydra.main(version_base=None, config_path="config", config_name="finetune")
+@hydra.main(version_base=None, config_path="config", config_name="train")
 def main(config: DictConfig) -> None:
     """Main function to run the training pipeline."""
     # --- SETUP ---
@@ -35,13 +36,12 @@ def main(config: DictConfig) -> None:
     # --- WANDB ---
     wandb.init(
         entity="AI4VS-Lab",
-        project="medgemma-finetuning",
+        project="medgemma-unified-training",
         config=OmegaConf.to_container(config, resolve=True, throw_on_missing=True),
     )
 
     # --- DATA ---
-    # For training, use OCTExpertData
-    data = OCTBiomarkerData(config.data)
+    data = OCTUnifiedData(config.data)
     print(data.train_data[0])
     print(data.test_data[0])
 

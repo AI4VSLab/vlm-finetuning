@@ -1,6 +1,5 @@
-__all__ = ["OCTDiagnosisData", "OCTBiomarkerData", "OCTEvaluationData", "ChatWrapper"]
+# amd-vlm-finetuning/src/data/__init__.py
+__all__ = ["ChatWrapper", "OCTUnifiedData"]
 
-from .diagnosis_data import OCTDiagnosisData
-from .biomarker_data import OCTBiomarkerData
-from .evaluation_data import OCTEvaluationData
 from .chat_wrapper import ChatWrapper
+from .data import OCTUnifiedData

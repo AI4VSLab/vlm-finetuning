@@ -58,12 +58,12 @@ class VisionLanguageModel:
     def inference_mode(self):
         FastVisionModel.for_inference(self.model)
 
-    def generate(self, image, use_streamer=True):
+    def generate(self, prompt, image, use_streamer=True):
         messages = [
             {"role": "system", "content": self.system_prompt},
             {
                 "role": "user",
-                "content": [{"type": "text", "text": self.user_prompt}, {"type": "image"}],
+                "content": [{"type": "text", "text": prompt}, {"type": "image"}],
             }
         ]
         input_text = self.processor.apply_chat_template(

@@ -1,13 +1,14 @@
-from algorithm import Evaluator
+# amd-vlm-finetuning/src/train.py
+from algorithm import Trainer
 from model import VisionLanguageModel
-from data import OCTEvaluationData
+from data import OCTUnifiedData
 
 import logging
+import wandb
 import torch
 import random
 import numpy as np
 import hydra
-import wandb
 from omegaconf import DictConfig, OmegaConf
 
 logger = logging.getLogger(__name__)
@@ -25,15 +26,21 @@ def cleanup():
         wandb.finish()
 
 
-@hydra.main(version_base=None, config_path="config", config_name="evaluate")
+@hydra.main(version_base=None, config_path="config", config_name="train")
 def main(config: DictConfig) -> None:
     """Main function to run the training pipeline."""
     # --- SETUP ---
     setup()
 
+    # --- WANDB ---
+    wandb.init(
+        entity="AI4VS-Lab",
+        project="medgemma-unified-training",
+        config=OmegaConf.to_container(config, resolve=True, throw_on_missing=True),
+    )
+
     # --- DATA ---
-    # For training, use OCTExpertData
-    data = OCTEvaluationData(config.data)
+    data = OCTUnifiedData(config.data)
     print(data.train_data[0])
     print(data.test_data[0])
 
@@ -41,6 +48,9 @@ def main(config: DictConfig) -> None:
     model = VisionLanguageModel(config.model)
 
     # --- ALGORITHM ---
+    trainer = Trainer(data, model, config.trainer)
+    trainer.run()
+
     evaluator = Evaluator(model, data, config.evaluator)
     evaluator.run()
 

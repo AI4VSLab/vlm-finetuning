@@ -1,10 +1,9 @@
 from torch.utils.data import Dataset
 
 class ChatWrapper(Dataset):
-    def __init__(self, dataset, system_prompt, user_prompt):
+    def __init__(self, dataset, system_prompt):
         self.dataset = dataset
         self.system_prompt = system_prompt
-        self.user_prompt = user_prompt
 
     def __getitem__(self, idx):
         sample = self.dataset[idx]
@@ -13,13 +12,13 @@ class ChatWrapper(Dataset):
             {
                 "role": "user",
                 "content": [
-                    {"type": "text", "text": self.user_prompt},
+                    {"type": "text", "text": sample["instruction"]},
                     {"type": "image", "image": sample["image"]},
                 ],
             },
             {
                 "role": "assistant",
-                "content": [{"type": "text", "text": sample["text"]}],
+                "content": [{"type": "text", "text": sample["response"]}],
             },
         ]
         return {"messages": conversation}

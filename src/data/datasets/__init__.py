@@ -1,4 +1,7 @@
-__all__ = ["OCTBinaryDataset", "OCTTranscriptDataset", "OCTC8Dataset", "OCTAMDDataset", "OCT2017Dataset", "OCT5KDataset"]
+# amd-vlm-finetuning/src/data/datasets/__init__.py
+__all__ = ["OCTTestDataset", "OCTDiagnosisDataset", "OCTBiomarkersDataset", "OCTVQADataset"]
 
-from .core import *
-from .oct_binary import OCTBinaryDataset
+from .test import OCTTestDataset
+from .diagnosis import OCTDiagnosisDataset
+from .biomarkers import OCTBiomarkersDataset
+from .vqa import OCTVQADataset
