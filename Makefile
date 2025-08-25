@@ -4,17 +4,9 @@ PYTHON = uv run
 install:
 	uv sync --all-groups
 
-.PHONY: pretrain
-pretrain:
-	export MPLBACKEND=agg && $(PYTHON) src/pretrain.py
-
-.PHONY: finetune
+.PHONY: train
 finetune:
-	export MPLBACKEND=agg && $(PYTHON) src/finetune.py
-
-.PHONY: evaluate
-evaluate:
-	export MPLBACKEND=agg && $(PYTHON) src/evaluation.py
+	export MPLBACKEND=agg && $(PYTHON) src/train.py
 
 .PHONY: clean
 clean:
