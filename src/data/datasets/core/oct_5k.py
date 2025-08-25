@@ -1,10 +1,10 @@
 from PIL import Image
-import io
 import torchvision.transforms as transforms
-import json # Import the json library
+import json  # Import the json library
 import pandas as pd
 from torch.utils.data import Dataset
 import os
+
 
 class OCT5KDataset(Dataset):
     def __init__(self, images_path, csv_path, use_grouped_biomarkers=True):
@@ -29,36 +29,31 @@ class OCT5KDataset(Dataset):
             ]
         )
 
-
     def __len__(self):
         return len(self.df)
 
     def __getitem__(self, idx):
-        img_filename = self.df.iloc[idx]['image']
+        img_filename = self.df.iloc[idx]["image"]
         if self.use_grouped_biomarkers:
-            biomarkers = self.df.iloc[idx]['grouped_biomarkers']
+            biomarkers = self.df.iloc[idx]["grouped_biomarkers"]
         else:
-            biomarkers = self.df.iloc[idx]['biomarkers']
+            biomarkers = self.df.iloc[idx]["biomarkers"]
 
         # Convert the string representation of list to actual list
         biomarkers = eval(biomarkers)
 
         img_path = os.path.join(self.images_path, img_filename)
 
-        img = Image.open(img_path).convert('RGB')
+        img = Image.open(img_path).convert("RGB")
 
         # Apply augmentations
         img = self.augmentations(img)
 
         # Create the text field as a JSON string
         target = {
-            'diagnosis': 'Wet Age-related Macular Degeneration (CNV)',
-            'biomarkers': biomarkers
+            "diagnosis": "Wet Age-related Macular Degeneration (CNV)",
+            "biomarkers": biomarkers,
         }
         text_output = json.dumps(target)
 
-        return {
-            'image': img,
-            'label': 'CNV',
-            'text': text_output
-        }
+        return {"image": img, "label": "CNV", "text": text_output}

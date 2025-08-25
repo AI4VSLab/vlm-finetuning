@@ -64,7 +64,7 @@ class VisionLanguageModel:
             {
                 "role": "user",
                 "content": [{"type": "text", "text": prompt}, {"type": "image"}],
-            }
+            },
         ]
         input_text = self.processor.apply_chat_template(
             messages, add_generation_prompt=True
@@ -86,7 +86,7 @@ class VisionLanguageModel:
                 use_cache=True,
                 do_sample=False,
                 repetition_penalty=1.15,
-                )
+            )
             return ""  # Streamer prints, so return empty string or None
         else:
             outputs = self.model.generate(
@@ -95,7 +95,7 @@ class VisionLanguageModel:
                 use_cache=True,
                 do_sample=False,
                 repetition_penalty=1.15,
-                )
+            )
             # Decode only the newly generated tokens (excluding the prompt)
             decoded_output = self.processor.decode(
                 outputs[0][inputs["input_ids"].shape[1] :], skip_special_tokens=True

@@ -26,7 +26,9 @@ class Trainer:
 
         self.trainer = SFTTrainer(
             model=model,
-            train_dataset=ChatWrapper(self.data.train_data, self.model.system_prompt, self.model.user_prompt),
+            train_dataset=ChatWrapper(
+                self.data.train_data, self.model.system_prompt, self.model.user_prompt
+            ),
             processing_class=processor.tokenizer,
             data_collator=UnslothVisionDataCollator(model, processor),
             args=SFTConfig(

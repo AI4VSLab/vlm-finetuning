@@ -4,8 +4,14 @@ from PIL import Image
 import torch
 from torch.utils.data import Dataset
 
+
 class OCTBiomarkersDataset(Dataset):
-    def __init__(self, images_dir, csv_path='/content/OCT-Biomarkers/sheets/combined.csv', transform = None):
+    def __init__(
+        self,
+        images_dir,
+        csv_path="/content/OCT-Biomarkers/sheets/combined.csv",
+        transform=None,
+    ):
         """
         Args:
             images_dir (string): Directory with all the images.
@@ -25,15 +31,15 @@ class OCTBiomarkersDataset(Dataset):
         if torch.is_tensor(idx):
             idx = idx.tolist()
 
-        img_filename = self.df.iloc[idx]['image_filename']
+        img_filename = self.df.iloc[idx]["image_filename"]
         img_path = os.path.join(self.images_dir, img_filename)
-        image = Image.open(img_path).convert('RGB')
+        image = Image.open(img_path).convert("RGB")
 
-        biomarkers_str = self.df.iloc[idx]['biomarkers']
+        biomarkers_str = self.df.iloc[idx]["biomarkers"]
         # Convert the string representation of the list back to a list
         biomarkers = eval(biomarkers_str)
 
-        label = self.df.iloc[idx]['label'] # Get the label
+        label = self.df.iloc[idx]["label"]  # Get the label
 
         if self.transform:
             image = self.transform(image)
@@ -42,8 +48,7 @@ class OCTBiomarkersDataset(Dataset):
             "image": image,
             "label": label,
             "instruction": self.instruction,
-            "response": ', '.join(biomarkers)
+            "response": ", ".join(biomarkers),
         }
-
 
         return sample

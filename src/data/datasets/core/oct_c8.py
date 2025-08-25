@@ -66,9 +66,7 @@ class OCTC8Dataset(Dataset):
         diagnosis_description = self.class_descriptions.get(
             label_name, label_name
         )  # Get description, default to class name if not found
-        target = {
-            "diagnosis": diagnosis_description
-        }
+        target = {"diagnosis": diagnosis_description}
         text_output = json.dumps(target)
 
         # 4. Format the data into the final dictionary

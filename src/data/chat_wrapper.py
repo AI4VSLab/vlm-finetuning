@@ -1,5 +1,6 @@
 from torch.utils.data import Dataset
 
+
 class ChatWrapper(Dataset):
     def __init__(self, dataset, system_prompt):
         self.dataset = dataset

@@ -1,6 +1,5 @@
 # amd-vlm-finetuning/src/train.py
 from algorithm import Trainer
-from algorithm import Evaluator
 from model import VisionLanguageModel
 from data import OCTUnifiedData
 
@@ -51,9 +50,6 @@ def main(config: DictConfig) -> None:
     # --- ALGORITHM ---
     trainer = Trainer(data, model, config.trainer)
     trainer.run()
-
-    evaluator = Evaluator(model, data, config.evaluator)
-    evaluator.run()
 
     # --- CLEANUP ---
     cleanup()

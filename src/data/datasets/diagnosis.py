@@ -1,6 +1,5 @@
-import json
 from torch.utils.data import Dataset
-from torchvision import datasets, transforms
+from torchvision import datasets
 import os
 
 
@@ -35,7 +34,7 @@ class OCTDiagnosisDataset(Dataset):
             "image": image,
             "label": label,
             "instruction": self.instruction,
-            "response": label
+            "response": label,
         }
 
         return sample
