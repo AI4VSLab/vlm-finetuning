@@ -33,7 +33,7 @@ class BalancedSFTTrainer(SFTTrainer):
         sampler = WeightedRandomSampler(
             weights=self.sampler_weights,
             num_samples=len(self.train_dataset),
-            replacement=True
+            replacement=True,
         )
 
         # Create the DataLoader with the custom sampler
@@ -46,7 +46,6 @@ class BalancedSFTTrainer(SFTTrainer):
             num_workers=self.args.dataloader_num_workers,
             pin_memory=self.args.dataloader_pin_memory,
         )
-
 
 
 class Trainer:
@@ -93,9 +92,9 @@ class Trainer:
                 eval_strategy="steps",
                 eval_steps=logging_steps,
                 save_total_limit=3,
-                load_best_model_at_end = True,       # MUST USE for early stopping
-                metric_for_best_model = "eval_loss", # metric we want to early stop on
-                greater_is_better = False,
+                load_best_model_at_end=True,  # MUST USE for early stopping
+                metric_for_best_model="eval_loss",  # metric we want to early stop on
+                greater_is_better=False,
                 optim="adamw_torch_fused",
                 weight_decay=0.01,
                 lr_scheduler_type="cosine",
@@ -112,11 +111,11 @@ class Trainer:
         )
 
         early_stopping_callback = EarlyStoppingCallback(
-                  early_stopping_patience = 3,     # How many steps we will wait if the eval loss doesn't decrease
-                                     # For example the loss might increase, but decrease after 3 steps
-                  early_stopping_threshold = 0.0,  # Can set higher - sets how much loss should decrease by until
-                                     # we consider early stopping. For eg 0.01 means if loss was
-                                     # 0.02 then 0.01, we consider to early stop the run.
+            early_stopping_patience=3,  # How many steps we will wait if the eval loss doesn't decrease
+            # For example the loss might increase, but decrease after 3 steps
+            early_stopping_threshold=0.0,  # Can set higher - sets how much loss should decrease by until
+            # we consider early stopping. For eg 0.01 means if loss was
+            # 0.02 then 0.01, we consider to early stop the run.
         )
         self.trainer.add_callback(early_stopping_callback)
 

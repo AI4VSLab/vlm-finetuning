@@ -8,6 +8,10 @@ install:
 train:
 	export MPLBACKEND=agg && $(PYTHON) src/train.py
 
+.PHONY: evaluate
+evaluate:
+	export MPLBACKEND=agg && $(PYTHON) src/evaluate.py
+
 .PHONY: clean
 clean:
 	@echo "Cleaning up project artifacts.."

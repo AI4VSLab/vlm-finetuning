@@ -4,7 +4,6 @@ from tqdm import tqdm
 import numpy as np
 import evaluate
 import nltk
-import torch
 
 logger = logging.getLogger(__name__)
 
@@ -33,12 +32,18 @@ class Evaluator:
 
     def _calculate_lexical_metrics(self, predictions, references):
         bleu_score = self.bleu.compute(predictions=predictions, references=references)
-        meteor_score = self.meteor.compute(predictions=predictions, references=references)
-        rouge_scores = self.rouge.compute(predictions=predictions, references=references)
+        meteor_score = self.meteor.compute(
+            predictions=predictions, references=references
+        )
+        rouge_scores = self.rouge.compute(
+            predictions=predictions, references=references
+        )
         return bleu_score, meteor_score, rouge_scores
 
     def _calculate_semantic_metrics(self, predictions, references):
-        bert_scores = self.bert.compute(predictions=predictions, references=references, lang="en")
+        bert_scores = self.bert.compute(
+            predictions=predictions, references=references, lang="en"
+        )
         medbert_scores = self.bert.compute(
             predictions=predictions,
             references=references,
@@ -76,8 +81,12 @@ class Evaluator:
             all_reference_texts.append(reference)
 
         if task_type == "biomarkers":
-            lexical_metrics = self._calculate_lexical_metrics(all_predicted_texts, all_reference_texts)
-            semantic_metrics = self._calculate_semantic_metrics(all_predicted_texts, all_reference_texts)
+            lexical_metrics = self._calculate_lexical_metrics(
+                all_predicted_texts, all_reference_texts
+            )
+            semantic_metrics = self._calculate_semantic_metrics(
+                all_predicted_texts, all_reference_texts
+            )
             return lexical_metrics, semantic_metrics
         else:
             return self._calculate_accuracy(all_predicted_texts, all_reference_texts)
@@ -129,15 +138,23 @@ class Evaluator:
         # Biomarkers Evaluation
         logger.info("\n--- Biomarkers Task ---")
         (bio_bleu, bio_meteor, bio_rouge), (bio_bert, bio_medbert) = self.evaluate(
-            self.data.biomarkers_dataset, num_samples=eval_samples, task_type="biomarkers"
+            self.data.biomarkers_dataset,
+            num_samples=eval_samples,
+            task_type="biomarkers",
         )
-        logger.info(f"BLEU: {bio_bleu['bleu']:.4f}, METEOR: {bio_meteor['meteor']:.4f}, ROUGE-L: {bio_rouge['rougeL']:.4f}")
-        logger.info(f"BERT Score: {np.mean(bio_bert['f1']):.4f}, MedBERT Score: {np.mean(bio_medbert['f1']):.4f}")
+        logger.info(
+            f"BLEU: {bio_bleu['bleu']:.4f}, METEOR: {bio_meteor['meteor']:.4f}, ROUGE-L: {bio_rouge['rougeL']:.4f}"
+        )
+        logger.info(
+            f"BERT Score: {np.mean(bio_bert['f1']):.4f}, MedBERT Score: {np.mean(bio_medbert['f1']):.4f}"
+        )
         self.generate(self.data.biomarkers_dataset, num_samples=gen_samples)
 
         # VQA Evaluation
         logger.info("\n--- VQA Task ---")
-        vqa_accuracy = self.evaluate(self.data.vqa_dataset, num_samples=eval_samples, task_type="vqa")
+        vqa_accuracy = self.evaluate(
+            self.data.vqa_dataset, num_samples=eval_samples, task_type="vqa"
+        )
         logger.info(f"Accuracy: {vqa_accuracy['accuracy']:.4f}")
         self.generate(self.data.vqa_dataset, num_samples=gen_samples)
 

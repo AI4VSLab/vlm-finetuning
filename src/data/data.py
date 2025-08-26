@@ -28,9 +28,7 @@ class OCTUnifiedData:
         self.biomarkers_dataset = OCTBiomarkersDataset(
             images_dir=images_dir, csv_path=train_csv_path
         )
-        self.vqa_dataset = OCTVQADataset(
-            images_dir=images_dir, csv_path=train_csv_path
-        )
+        self.vqa_dataset = OCTVQADataset(images_dir=images_dir, csv_path=train_csv_path)
 
         # Combine datasets for training
         self.train_data = ConcatDataset(
@@ -53,15 +51,17 @@ class OCTUnifiedData:
         val_biomarkers_dataset = OCTBiomarkersDataset(
             images_dir=images_dir, csv_path=val_csv_path
         )
-        val_vqa_dataset = OCTVQADataset(
-            images_dir=images_dir, csv_path=val_csv_path
-        )
+        val_vqa_dataset = OCTVQADataset(images_dir=images_dir, csv_path=val_csv_path)
 
         target_size = len(val_biomarkers_dataset)
-        logger.info(f"Target size for each validation task set to {target_size} samples.")
+        logger.info(
+            f"Target size for each validation task set to {target_size} samples."
+        )
 
         # Subsample the larger datasets
-        diag_indices = np.random.choice(len(val_diagnosis_dataset), target_size, replace=False)
+        diag_indices = np.random.choice(
+            len(val_diagnosis_dataset), target_size, replace=False
+        )
         val_diagnosis_dataset = Subset(val_diagnosis_dataset, diag_indices)
 
         vqa_indices = np.random.choice(len(val_vqa_dataset), target_size, replace=False)
