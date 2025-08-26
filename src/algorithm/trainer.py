@@ -3,6 +3,7 @@ import wandb
 from unsloth.trainer import UnslothVisionDataCollator
 from torch.utils.data import DataLoader, WeightedRandomSampler
 from trl import SFTTrainer, SFTConfig
+from transformers import EarlyStoppingCallback
 from data import ChatWrapper
 
 logger = logging.getLogger(__name__)
@@ -61,10 +62,12 @@ class Trainer:
         processor = self.model.processor
 
         # log every 1%
-        num_batches = self.config.num_epochs * len(self.data.train_data)
-        effective_batch_size = self.config.batch_size * self.config.grad_accum_steps
-        total_steps = num_batches // effective_batch_size
-        logging_steps = 1 if total_steps < 100 else total_steps // 100
+        # num_batches = self.config.num_epochs * len(self.data.train_data)
+        # effective_batch_size = self.config.train_batch_size * self.config.grad_accum_steps
+        # total_steps = num_batches // effective_batch_size
+        # logging_steps = 1 if total_steps < 100 else total_steps // 100
+        logging_steps = self.config.logging_steps
+        logger.info(f"Logging Steps {logging_steps}")
 
         self.trainer = BalancedSFTTrainer(
             model=model,
@@ -74,21 +77,25 @@ class Trainer:
             processing_class=processor.tokenizer,
             data_collator=UnslothVisionDataCollator(model, processor),
             args=SFTConfig(
-                per_device_train_batch_size=self.config.batch_size,
+                per_device_train_batch_size=self.config.train_batch_size,
+                per_device_eval_batch_size=self.config.eval_batch_size,
                 gradient_accumulation_steps=self.config.grad_accum_steps,
                 gradient_checkpointing=True,
                 # use reentrant checkpointing
                 gradient_checkpointing_kwargs={"use_reentrant": False},
                 max_grad_norm=0.3,  # max gradient norm based on QLoRA paper
-                warmup_ratio=0.03,
+                warmup_ratio=self.config.warmup_ratio,
                 num_train_epochs=self.config.num_epochs,
                 learning_rate=self.config.learning_rate,
                 logging_steps=logging_steps,
                 save_strategy="steps",
+                save_steps=logging_steps,
                 eval_strategy="steps",
                 eval_steps=logging_steps,
                 save_total_limit=3,
-                load_best_model_at_end=True,
+                load_best_model_at_end = True,       # MUST USE for early stopping
+                metric_for_best_model = "eval_loss", # metric we want to early stop on
+                greater_is_better = False,
                 optim="adamw_torch_fused",
                 weight_decay=0.01,
                 lr_scheduler_type="cosine",
@@ -103,6 +110,15 @@ class Trainer:
                 max_length=2048,
             ),
         )
+
+        early_stopping_callback = EarlyStoppingCallback(
+                  early_stopping_patience = 3,     # How many steps we will wait if the eval loss doesn't decrease
+                                     # For example the loss might increase, but decrease after 3 steps
+                  early_stopping_threshold = 0.0,  # Can set higher - sets how much loss should decrease by until
+                                     # we consider early stopping. For eg 0.01 means if loss was
+                                     # 0.02 then 0.01, we consider to early stop the run.
+        )
+        self.trainer.add_callback(early_stopping_callback)
 
     def run(self):
         logger.info("Starting training...")

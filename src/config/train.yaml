@@ -7,8 +7,7 @@ hydra:
 data:
   diagnosis_dir: /content/OCT-Diagnosis/RetinalOCT_Dataset/RetinalOCT_Dataset
   biomarkers_images_dir: /content/OCT-Biomarkers/images
-  biomarkers_train_csv_path: /content/OCT-Biomarkers/sheets/splits/train.csv
-  biomarkers_val_csv_path: /content/OCT-Biomarkers/sheets/splits/val.csv
+  biomarkers_csv_path: /content/OCT-Biomarkers/sheets/splits
   test_dir: /content/OCT-Test
 
 model:
@@ -25,13 +24,16 @@ model:
   lora:
     r: 16
     alpha: 32
-    dropout: 0.05
+    dropout: 0.0
 
 trainer:
   num_epochs: 8
-  batch_size: 32
-  grad_accum_steps: 2
-  learning_rate: 2e-5
+  train_batch_size: 56
+  eval_batch_size: 224
+  grad_accum_steps: 1
+  warmup_ratio: 0.1
+  learning_rate: 8e-6
+  logging_steps: 100
 
 evaluator:
   eval_samples: 50

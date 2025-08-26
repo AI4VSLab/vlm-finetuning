@@ -1,7 +1,9 @@
 # amd-vlm-finetuning/src/data/unified_data.py
 import logging
+import os
 import torch
-from torch.utils.data import ConcatDataset
+import numpy as np
+from torch.utils.data import ConcatDataset, Subset
 from .datasets import (
     OCTDiagnosisDataset,
     OCTBiomarkersDataset,
@@ -20,11 +22,14 @@ class OCTUnifiedData:
         self.diagnosis_dataset = OCTDiagnosisDataset(
             root=config.diagnosis_dir, split="train"
         )
+
+        images_dir = config.biomarkers_images_dir
+        train_csv_path = os.path.join(config.biomarkers_csv_path, "train.csv")
         self.biomarkers_dataset = OCTBiomarkersDataset(
-            images_dir=config.biomarkers_images_dir, csv_path=config.biomarkers_train_csv_path
+            images_dir=images_dir, csv_path=train_csv_path
         )
         self.vqa_dataset = OCTVQADataset(
-            images_dir=config.biomarkers_images_dir, csv_path=config.biomarkers_train_csv_path
+            images_dir=images_dir, csv_path=train_csv_path
         )
 
         # Combine datasets for training
@@ -42,12 +47,25 @@ class OCTUnifiedData:
         val_diagnosis_dataset = OCTDiagnosisDataset(
             root=config.diagnosis_dir, split="val"
         )
+
+        images_dir = config.biomarkers_images_dir
+        val_csv_path = os.path.join(config.biomarkers_csv_path, "val.csv")
         val_biomarkers_dataset = OCTBiomarkersDataset(
-            images_dir=config.biomarkers_images_dir, csv_path=config.biomarkers_val_csv_path
+            images_dir=images_dir, csv_path=val_csv_path
         )
         val_vqa_dataset = OCTVQADataset(
-            images_dir=config.biomarkers_images_dir, csv_path=config.biomarkers_val_csv_path
+            images_dir=images_dir, csv_path=val_csv_path
         )
+
+        target_size = len(val_biomarkers_dataset)
+        logger.info(f"Target size for each validation task set to {target_size} samples.")
+
+        # Subsample the larger datasets
+        diag_indices = np.random.choice(len(val_diagnosis_dataset), target_size, replace=False)
+        val_diagnosis_dataset = Subset(val_diagnosis_dataset, diag_indices)
+
+        vqa_indices = np.random.choice(len(val_vqa_dataset), target_size, replace=False)
+        val_vqa_dataset = Subset(val_vqa_dataset, vqa_indices)
 
         self.val_data = ConcatDataset(
             [val_diagnosis_dataset, val_biomarkers_dataset, val_vqa_dataset]
