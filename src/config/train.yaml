@@ -7,7 +7,8 @@ hydra:
 data:
   diagnosis_dir: /content/OCT-Diagnosis/RetinalOCT_Dataset/RetinalOCT_Dataset
   biomarkers_images_dir: /content/OCT-Biomarkers/images
-  biomarkers_csv_path: /content/OCT-Biomarkers/sheets/splits/train.csv
+  biomarkers_train_csv_path: /content/OCT-Biomarkers/sheets/splits/train.csv
+  biomarkers_val_csv_path: /content/OCT-Biomarkers/sheets/splits/val.csv
   test_dir: /content/OCT-Test
 
 model:

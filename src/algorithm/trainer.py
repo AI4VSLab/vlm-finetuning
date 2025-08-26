@@ -9,20 +9,33 @@ logger = logging.getLogger(__name__)
 
 
 class BalancedSFTTrainer(SFTTrainer):
+    def __init__(self, *args, sampler_weights=None, **kwargs):
+        # Store the weights before calling the parent constructor
+        self.sampler_weights = sampler_weights
+        super().__init__(*args, **kwargs)
+
     def get_train_dataloader(self) -> DataLoader:
         """
         Returns the training [`~torch.utils.data.DataLoader`].
 
-        Will use a `WeightedRandomSampler` to ensure that each dataset is sampled proportionally
-        to its size.
+        Will use a `WeightedRandomSampler` to ensure that each dataset is sampled
+        in a balanced way.
         """
         if self.train_dataset is None:
             raise ValueError("Trainer: training requires a train_dataset.")
 
-        # Get weights from our custom data class
-        weights = self.dataset_adapter.get_sampler_weights()
-        sampler = WeightedRandomSampler(weights, num_samples=len(self.train_dataset), replacement=True)
+        # If no weights are provided, default to the standard dataloader
+        if self.sampler_weights is None:
+            return super().get_train_dataloader()
 
+        # Create the sampler
+        sampler = WeightedRandomSampler(
+            weights=self.sampler_weights,
+            num_samples=len(self.train_dataset),
+            replacement=True
+        )
+
+        # Create the DataLoader with the custom sampler
         return DataLoader(
             self.train_dataset,
             batch_size=self._train_batch_size,
@@ -43,6 +56,7 @@ class Trainer:
 
         self.model.train_mode()
 
+        sampler_weights = self.data.get_sampler_weights()
         model = self.model.model
         processor = self.model.processor
 
@@ -55,6 +69,8 @@ class Trainer:
         self.trainer = BalancedSFTTrainer(
             model=model,
             train_dataset=ChatWrapper(self.data.train_data, self.model.system_prompt),
+            eval_dataset=ChatWrapper(self.data.val_data, self.model.system_prompt),
+            sampler_weights=sampler_weights,
             processing_class=processor.tokenizer,
             data_collator=UnslothVisionDataCollator(model, processor),
             args=SFTConfig(
@@ -69,6 +85,10 @@ class Trainer:
                 learning_rate=self.config.learning_rate,
                 logging_steps=logging_steps,
                 save_strategy="steps",
+                evaluation_strategy="steps",
+                eval_steps=logging_steps,
+                save_total_limit=3,
+                load_best_model_at_end=True,
                 optim="adamw_torch_fused",
                 weight_decay=0.01,
                 lr_scheduler_type="cosine",

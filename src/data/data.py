@@ -21,10 +21,10 @@ class OCTUnifiedData:
             root=config.diagnosis_dir, split="train"
         )
         self.biomarkers_dataset = OCTBiomarkersDataset(
-            images_dir=config.biomarkers_images_dir, csv_path=config.biomarkers_csv_path
+            images_dir=config.biomarkers_images_dir, csv_path=config.biomarkers_train_csv_path
         )
         self.vqa_dataset = OCTVQADataset(
-            images_dir=config.biomarkers_images_dir, csv_path=config.biomarkers_csv_path
+            images_dir=config.biomarkers_images_dir, csv_path=config.biomarkers_train_csv_path
         )
 
         # Combine datasets for training
@@ -34,9 +34,30 @@ class OCTUnifiedData:
         logger.info(
             f"Unified training dataset loaded with {len(self.train_data)} samples."
         )
-        logger.info(f"  - Diagnosis samples: {len(self.diagnosis_dataset)}")
-        logger.info(f"  - Biomarker samples: {len(self.biomarkers_dataset)}")
-        logger.info(f"  - VQA samples: {len(self.vqa_dataset)}")
+        logger.info(f"  - Diagnosis samples (train): {len(self.diagnosis_dataset)}")
+        logger.info(f"  - Biomarker samples (train): {len(self.biomarkers_dataset)}")
+        logger.info(f"  - VQA samples (train): {len(self.vqa_dataset)}")
+
+        # Validation Dataset
+        val_diagnosis_dataset = OCTDiagnosisDataset(
+            root=config.diagnosis_dir, split="val"
+        )
+        val_biomarkers_dataset = OCTBiomarkersDataset(
+            images_dir=config.biomarkers_images_dir, csv_path=config.biomarkers_val_csv_path
+        )
+        val_vqa_dataset = OCTVQADataset(
+            images_dir=config.biomarkers_images_dir, csv_path=config.biomarkers_val_csv_path
+        )
+
+        self.val_data = ConcatDataset(
+            [val_diagnosis_dataset, val_biomarkers_dataset, val_vqa_dataset]
+        )
+        logger.info(
+            f"Unified validation dataset loaded with {len(self.val_data)} samples."
+        )
+        logger.info(f"  - Diagnosis samples (val): {len(val_diagnosis_dataset)}")
+        logger.info(f"  - Biomarker samples (val): {len(val_biomarkers_dataset)}")
+        logger.info(f"  - VQA samples (val): {len(val_vqa_dataset)}")
 
         # For evaluation, we can use a held-out test set. Here we use the diagnosis test set as an example.
         # You might want to create a more comprehensive test set later.
