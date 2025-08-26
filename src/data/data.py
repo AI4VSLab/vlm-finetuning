@@ -87,12 +87,37 @@ class OCTUnifiedData:
         """
         Calculates and returns weights for each sample in the training dataset
         for balanced sampling.
+
+        Args:
+            ratios (dict, optional): A dictionary specifying the desired sampling
+                                        ratio for each dataset.
+                                        Keys should be 'diagnosis', 'biomarkers', 'vqa'.
+                                        If None, defaults to 1/N weighting for a 33/33/33 split.
         """
+        ratios = {
+            'diagnosis': 0.25,
+            'biomarkers': 0.50,
+            'vqa': 0.25
+        }
+
         weights = []
-        # Calculate weight for each dataset (1 / num_samples)
-        diag_weight = 1.0 / len(self.diagnosis_dataset)
-        biom_weight = 1.0 / len(self.biomarkers_dataset)
-        vqa_weight = 1.0 / len(self.vqa_dataset)
+
+        if ratios:
+            # Ensure the ratios sum to 1 for clarity
+            if sum(ratios.values()) != 1.0:
+                logger.warning(f"Custom ratios {ratios} do not sum to 1. Normalizing internally.")
+
+            logger.info(f"Using custom sampling ratios: {ratios}")
+            # The weight for each sample is target_ratio / num_samples
+            diag_weight = ratios['diagnosis'] / len(self.diagnosis_dataset)
+            biom_weight = ratios['biomarkers'] / len(self.biomarkers_dataset)
+            vqa_weight = ratios['vqa'] / len(self.vqa_dataset)
+        else:
+            logger.info("Using default 1/N balanced sampling for a 33/33/33 split.")
+            # Default behavior: 1 / num_samples
+            diag_weight = 1.0 / len(self.diagnosis_dataset)
+            biom_weight = 1.0 / len(self.biomarkers_dataset)
+            vqa_weight = 1.0 / len(self.vqa_dataset)
 
         # Assign weight to each sample
         weights.extend([diag_weight] * len(self.diagnosis_dataset))
