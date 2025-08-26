@@ -11,7 +11,6 @@ class VisionLanguageModel:
         self.config = config
         self.load()
         self.system_prompt = self.config.system_prompt
-        self.user_prompt = self.config.user_prompt
         logger.info("Model created.")
 
     def save(self):
