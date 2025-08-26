@@ -15,7 +15,7 @@ class OCTDiagnosisDataset(Dataset):
         self.classes = self.dataset.classes
         self.transform = transform
         self.class_to_idx = self.dataset.class_to_idx
-        self.instruction = "What is the diagnosis for this OCT scan, Normal or wet-AMD?"
+        self.instruction = "[DIAGNOSIS] What is the diagnosis for this OCT scan, Normal or wet-AMD?"
 
     def __len__(self):
         return len(self.dataset)

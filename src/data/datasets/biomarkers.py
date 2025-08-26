@@ -22,7 +22,7 @@ class OCTBiomarkersDataset(Dataset):
         self.images_dir = images_dir
         self.df = pd.read_csv(csv_path)
         self.transform = transform
-        self.instruction = "What biomarkers are visible in this OCT scan?"
+        self.instruction = "[BIOMARKERS] What biomarkers are visible in this OCT scan?"
 
     def __len__(self):
         return len(self.df)

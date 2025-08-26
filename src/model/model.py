@@ -15,6 +15,7 @@ class VisionLanguageModel:
 
     def save(self):
         self.model.save_pretrained(self.config.save_path)
+        self.processor.save_pretrained(self.config.save_path)
 
     def load(self):
         if self.config.from_checkpoint:

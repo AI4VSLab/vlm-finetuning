@@ -38,7 +38,7 @@ class OCTVQADataset(Dataset):
             "Choroidal Fold",
             "Fluid",
         ]
-        self.instruction_template = "Is {} present in this OCT scan?"
+        self.instruction_template = "[VQA] Is {} present in this OCT scan?"
 
         # Create a list of all possible biomarker questions and their corresponding image index
         self.samples = []

@@ -8,9 +8,9 @@ install:
 train:
 	export MPLBACKEND=agg && $(PYTHON) src/train.py
 
-.PHONY: evaluate
-evaluate:
-	export MPLBACKEND=agg && $(PYTHON) src/evaluate.py
+.PHONY: test
+test:
+	export MPLBACKEND=agg && $(PYTHON) src/test.py
 
 .PHONY: clean
 clean:

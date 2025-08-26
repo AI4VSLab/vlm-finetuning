@@ -153,7 +153,7 @@ class Evaluator:
         # VQA Evaluation
         logger.info("\n--- VQA Task ---")
         vqa_accuracy = self.evaluate(
-            self.data.vqa_dataset, num_samples=eval_samples, task_type="vqa"
+            self.data.vqa_dataset, num_samples=200, task_type="vqa"
         )
         logger.info(f"Accuracy: {vqa_accuracy['accuracy']:.4f}")
         self.generate(self.data.vqa_dataset, num_samples=gen_samples)
@@ -161,7 +161,7 @@ class Evaluator:
         # Test Dataset Evaluation
         logger.info("\n--- Test Task ---")
         test_accuracy = self.evaluate(
-            self.data.test_dataset, num_samples=eval_samples, task_type="diagnosis"
+            self.data.test_dataset, num_samples=100, task_type="diagnosis"
         )
         logger.info(f"Accuracy: {test_accuracy['accuracy']:.4f}")
         self.generate(self.data.test_dataset, num_samples=gen_samples)

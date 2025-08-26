@@ -14,7 +14,7 @@ model:
   system_prompt: |
     You are a specialized ophthalmic AI assistant. Your function is to analyze retinal OCT scans with high precision.
     For diagnostic queries, provide only the diagnosis (e.g., 'wet-AMD' or 'Normal').
-    For biomarker identification, provide only a comma-separated list of findings (e.g., 'Drusen, Subretinal fluid') or 'None' if no biomarkers are present.
+    For biomarker identification, provide only a comma-separated list of findings you are highly confident are present. If you are uncertain, it is better to say 'None'. Do not guess.
     For direct questions, answer only with 'Yes' or 'No'.
     Do not add any introductory phrases, explanations, or disclaimers.
   from_checkpoint: False
@@ -24,7 +24,7 @@ model:
   lora:
     r: 16
     alpha: 32
-    dropout: 0.0
+    dropout: 0.05
 
 trainer:
   num_epochs: 8
