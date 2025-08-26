@@ -1,10 +1,38 @@
 import logging
 import wandb
 from unsloth.trainer import UnslothVisionDataCollator
+from torch.utils.data import DataLoader, WeightedRandomSampler
 from trl import SFTTrainer, SFTConfig
 from data import ChatWrapper
 
 logger = logging.getLogger(__name__)
+
+
+class BalancedSFTTrainer(SFTTrainer):
+    def get_train_dataloader(self) -> DataLoader:
+        """
+        Returns the training [`~torch.utils.data.DataLoader`].
+
+        Will use a `WeightedRandomSampler` to ensure that each dataset is sampled proportionally
+        to its size.
+        """
+        if self.train_dataset is None:
+            raise ValueError("Trainer: training requires a train_dataset.")
+
+        # Get weights from our custom data class
+        weights = self.dataset_adapter.get_sampler_weights()
+        sampler = WeightedRandomSampler(weights, num_samples=len(self.train_dataset), replacement=True)
+
+        return DataLoader(
+            self.train_dataset,
+            batch_size=self._train_batch_size,
+            sampler=sampler,
+            collate_fn=self.data_collator,
+            drop_last=self.args.dataloader_drop_last,
+            num_workers=self.args.dataloader_num_workers,
+            pin_memory=self.args.dataloader_pin_memory,
+        )
+
 
 
 class Trainer:
@@ -24,7 +52,7 @@ class Trainer:
         total_steps = num_batches // effective_batch_size
         logging_steps = 1 if total_steps < 100 else total_steps // 100
 
-        self.trainer = SFTTrainer(
+        self.trainer = BalancedSFTTrainer(
             model=model,
             train_dataset=ChatWrapper(self.data.train_data, self.model.system_prompt),
             processing_class=processor.tokenizer,

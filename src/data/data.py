@@ -1,5 +1,6 @@
 # amd-vlm-finetuning/src/data/unified_data.py
 import logging
+import torch
 from torch.utils.data import ConcatDataset
 from .datasets import (
     OCTDiagnosisDataset,
@@ -16,29 +17,47 @@ class OCTUnifiedData:
         logger.info("Loading Unified Datasets...")
 
         # Initialize individual datasets
-        diagnosis_dataset = OCTDiagnosisDataset(
+        self.diagnosis_dataset = OCTDiagnosisDataset(
             root=config.diagnosis_dir, split="train"
         )
-        biomarkers_dataset = OCTBiomarkersDataset(
+        self.biomarkers_dataset = OCTBiomarkersDataset(
             images_dir=config.biomarkers_images_dir, csv_path=config.biomarkers_csv_path
         )
-        vqa_dataset = OCTVQADataset(
+        self.vqa_dataset = OCTVQADataset(
             images_dir=config.biomarkers_images_dir, csv_path=config.biomarkers_csv_path
         )
 
         # Combine datasets for training
         self.train_data = ConcatDataset(
-            [diagnosis_dataset, biomarkers_dataset, vqa_dataset]
+            [self.diagnosis_dataset, self.biomarkers_dataset, self.vqa_dataset]
         )
         logger.info(
             f"Unified training dataset loaded with {len(self.train_data)} samples."
         )
-        logger.info(f"  - Diagnosis samples: {len(diagnosis_dataset)}")
-        logger.info(f"  - Biomarker samples: {len(biomarkers_dataset)}")
-        logger.info(f"  - VQA samples: {len(vqa_dataset)}")
+        logger.info(f"  - Diagnosis samples: {len(self.diagnosis_dataset)}")
+        logger.info(f"  - Biomarker samples: {len(self.biomarkers_dataset)}")
+        logger.info(f"  - VQA samples: {len(self.vqa_dataset)}")
 
         # For evaluation, we can use a held-out test set. Here we use the diagnosis test set as an example.
         # You might want to create a more comprehensive test set later.
         self.test_data = OCTTestDataset(root=config.test_dir)
         logger.info(f"Test dataset loaded with {len(self.test_data)} samples.")
         logger.info("Unified data loading complete.")
+
+    def get_sampler_weights(self):
+        """
+        Calculates and returns weights for each sample in the training dataset
+        for balanced sampling.
+        """
+        weights = []
+        # Calculate weight for each dataset (1 / num_samples)
+        diag_weight = 1.0 / len(self.diagnosis_dataset)
+        biom_weight = 1.0 / len(self.biomarkers_dataset)
+        vqa_weight = 1.0 / len(self.vqa_dataset)
+
+        # Assign weight to each sample
+        weights.extend([diag_weight] * len(self.diagnosis_dataset))
+        weights.extend([biom_weight] * len(self.biomarkers_dataset))
+        weights.extend([vqa_weight] * len(self.vqa_dataset))
+
+        return torch.DoubleTensor(weights)
