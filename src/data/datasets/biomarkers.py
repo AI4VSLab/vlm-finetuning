@@ -3,6 +3,7 @@ import pandas as pd
 from PIL import Image
 import torch
 from torch.utils.data import Dataset
+import ast
 
 
 class OCTBiomarkersDataset(Dataset):
@@ -23,6 +24,12 @@ class OCTBiomarkersDataset(Dataset):
         self.df = pd.read_csv(csv_path)
         self.transform = transform
         self.instruction = "[BIOMARKERS] What biomarkers are visible in this OCT scan?"
+        self.all_biomarkers = {
+                    "Drusen", "Photoreceptor Degeneration", "Pigment Epithelial Detachment",
+                    "Geographic Atrophy", "Choroidal Fold", "Epiretinal Membrane",
+                    "Hyperfluorescent Spots", "Intraretinal Fluid", "Posterior Vitreous Detachment",
+                    "Fluid", "Subretinal Fluid", "Choroidal Neovascularization"
+                }
 
     def __len__(self):
         return len(self.df)
@@ -37,7 +44,11 @@ class OCTBiomarkersDataset(Dataset):
 
         biomarkers_str = self.df.iloc[idx]["biomarkers"]
         # Convert the string representation of the list back to a list
-        biomarkers = eval(biomarkers_str)
+        biomarkers = ast.literal_eval(biomarkers_str)
+
+        filtered_biomarkers = [b for b in biomarkers if b not in self.all_biomarkers]
+        text = ", ".join(filtered_biomarkers) if filtered_biomarkers else "None"
+
 
         label = self.df.iloc[idx]["label"]  # Get the label
 
@@ -48,7 +59,7 @@ class OCTBiomarkersDataset(Dataset):
             "image": image,
             "label": label,
             "instruction": self.instruction,
-            "response": ", ".join(biomarkers),
+            "response": text,
         }
 
         return sample

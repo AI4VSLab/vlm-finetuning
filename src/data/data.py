@@ -3,6 +3,7 @@ import logging
 import os
 import torch
 import numpy as np
+from torchvision import transforms
 from torch.utils.data import ConcatDataset, Subset
 from .datasets import (
     OCTDiagnosisDataset,
@@ -18,17 +19,32 @@ class OCTUnifiedData:
     def __init__(self, config):
         logger.info("Loading Unified Datasets...")
 
+        self.augmentations = transforms.Compose(
+            [
+                # 1. Flip the image horizontally.
+                transforms.RandomHorizontalFlip(p=0.5),
+                # 2. Apply random geometric transformations.
+                transforms.RandomAffine(
+                    degrees=5,
+                    translate=(0.05, 0.05),
+                    scale=(0.95, 1.05),
+                ),
+                # 3. Adjust brightness and contrast.
+                transforms.ColorJitter(brightness=0.2, contrast=0.2),
+            ]
+        )
+
         # Initialize individual datasets
         self.diagnosis_dataset = OCTDiagnosisDataset(
-            root=config.diagnosis_dir, split="train"
+            root=config.diagnosis_dir, split="train", transform=self.augmentations
         )
 
         images_dir = config.biomarkers_images_dir
         train_csv_path = os.path.join(config.biomarkers_csv_path, "train.csv")
         self.biomarkers_dataset = OCTBiomarkersDataset(
-            images_dir=images_dir, csv_path=train_csv_path
+            images_dir=images_dir, csv_path=train_csv_path, transform=self.augmentations
         )
-        self.vqa_dataset = OCTVQADataset(images_dir=images_dir, csv_path=train_csv_path)
+        self.vqa_dataset = OCTVQADataset(images_dir=images_dir, csv_path=train_csv_path, transform=self.augmentations)
 
         # Combine datasets for training
         self.train_data = ConcatDataset(
@@ -95,8 +111,8 @@ class OCTUnifiedData:
                                         If None, defaults to 1/N weighting for a 33/33/33 split.
         """
         ratios = {
-            'diagnosis': 0.25,
-            'biomarkers': 0.50,
+            'diagnosis': 0.35,
+            'biomarkers': 0.40,
             'vqa': 0.25
         }
 

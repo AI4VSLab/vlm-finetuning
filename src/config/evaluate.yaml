@@ -11,18 +11,18 @@ data:
 
 model:
   system_prompt: |
-    You are a specialized ophthalmic AI assistant. Your function is to analyze retinal OCT scans with high precision.
-    For diagnostic queries, provide only the diagnosis (e.g., 'wet-AMD' or 'Normal').
-    For biomarker identification, provide only a comma-separated list of findings (e.g., 'Drusen, Subretinal fluid') or 'None' if no biomarkers are present.
-    For direct questions, answer only with 'Yes' or 'No'.
-    Do not add any introductory phrases, explanations, or disclaimers.
+    You are an expert ophthalmic AI assistant. Analyze the provided retinal OCT scan and follow the instructions precisely.
+    - For diagnosis, respond with only the diagnosis (e.g., 'wet-AMD' or 'Normal').
+    - For biomarkers, respond with only a comma-separated list of findings (e.g., 'Drusen, Subretinal Fluid') or 'None'.
+    - For questions, respond with only 'Yes' or 'No'.
+    Do not provide any explanations, disclaimers, or introductory text.
   from_checkpoint: True
   checkpoint_path: /content/medgemma-unified
   name: unsloth/medgemma-4b-it-unsloth-bnb-4bit
   save_path: null
   lora:
-    r: 16
-    alpha: 32
+    r: 32
+    alpha: 64
     dropout: 0.0
 
 evaluator:
