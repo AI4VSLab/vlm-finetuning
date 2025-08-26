@@ -5,7 +5,7 @@ install:
 	uv sync --all-groups
 
 .PHONY: train
-finetune:
+train:
 	export MPLBACKEND=agg && $(PYTHON) src/train.py
 
 .PHONY: clean
