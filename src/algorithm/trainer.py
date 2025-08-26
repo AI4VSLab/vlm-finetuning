@@ -85,7 +85,7 @@ class Trainer:
                 learning_rate=self.config.learning_rate,
                 logging_steps=logging_steps,
                 save_strategy="steps",
-                evaluation_strategy="steps",
+                eval_strategy="steps",
                 eval_steps=logging_steps,
                 save_total_limit=3,
                 load_best_model_at_end=True,
