@@ -46,7 +46,7 @@ class OCTBiomarkersDataset(Dataset):
         # Convert the string representation of the list back to a list
         biomarkers = ast.literal_eval(biomarkers_str)
 
-        filtered_biomarkers = [b for b in biomarkers if b not in self.all_biomarkers]
+        filtered_biomarkers = [b for b in biomarkers if b in self.all_biomarkers]
         text = ", ".join(filtered_biomarkers) if filtered_biomarkers else "None"
 
 

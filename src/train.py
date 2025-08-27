@@ -42,6 +42,8 @@ def main(config: DictConfig) -> None:
     # --- DATA ---
     data = OCTUnifiedData(config.data)
     print(data.train_data[0])
+    print(data.train_data[5000])
+    print(data.train_data[-1])
     print(data.test_data[0])
 
     # --- MODEL ---

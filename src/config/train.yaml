@@ -9,6 +9,7 @@ data:
   biomarkers_images_dir: /content/OCT-Biomarkers/images
   biomarkers_csv_path: /content/OCT-Biomarkers/sheets/splits
   test_dir: /content/OCT-Test
+  stage: foundation
 
 model:
   system_prompt: |
@@ -27,10 +28,10 @@ model:
     dropout: 0.05
 
 trainer:
-  num_epochs: 8
+  num_epochs: 3
   train_batch_size: 56
   eval_batch_size: 224
   grad_accum_steps: 1
   warmup_ratio: 0.1
   learning_rate: 5e-6
-  logging_steps: 100
+  logging_steps: 50
