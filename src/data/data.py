@@ -59,7 +59,7 @@ class OCTUnifiedData:
             f"Unified training dataset loaded with {len(self.train_data)} samples."
         )
         logger.info(f"  - Diagnosis samples (train): {len(self.diagnosis_dataset)}")
-        if stage == "unified":
+        if self.stage == "unified":
             logger.info(f"  - Biomarker samples (train): {len(self.biomarkers_dataset)}")
         logger.info(f"  - VQA samples (train): {len(self.vqa_dataset)}")
 
