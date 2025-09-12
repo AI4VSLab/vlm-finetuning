@@ -179,3 +179,8 @@ cython_debug/
 # Custom
 outputs/
 dataset/
+content/
+gemma-product-description/
+xinxin_tfrecord_files/
+*.tf
+*.pt
