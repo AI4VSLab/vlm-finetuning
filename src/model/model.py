@@ -129,7 +129,7 @@ class RetinaVLMModel:
             traceback.print_exc()
             raise
 
-    def generate(self, prompt, image):
+    def generate(self, prompt, image, use_streamer=False):
         instruction = prompt
         if instruction is None:
             instruction = ("Write an extensive report describing the OCT image and "

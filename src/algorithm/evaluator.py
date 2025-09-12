@@ -27,7 +27,6 @@ class Evaluator:
         self.rouge = evaluate.load("rouge")
         self.bert = evaluate.load("bertscore")
 
-        self.model.inference_mode()
         logger.info("Evaluator initialized for evaluation and sample generation.")
 
     def _calculate_lexical_metrics(self, predictions, references):
@@ -115,7 +114,7 @@ class Evaluator:
                 logger.info(f"Reference Response: {reference}")
                 logger.info("Predicted Response:")
 
-                self.model.generate(prompt, image, use_streamer=True)
+                print(self.model.generate(prompt, image, use_streamer=True))
 
             except Exception as e:
                 logger.error(f"Error generating prediction for index {idx}: {e}")
