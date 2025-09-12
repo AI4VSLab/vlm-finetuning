@@ -129,7 +129,7 @@ class RetinaVLMModel:
             traceback.print_exc()
             raise
 
-    def generate(self, prompt, image, use_streamer=False):
+    def generate(self, prompt, image: Image.Image, use_streamer=False):
         instruction = prompt
         if instruction is None:
             instruction = ("Write an extensive report describing the OCT image and "
@@ -137,8 +137,11 @@ class RetinaVLMModel:
                          "Do not provide disease stage or patient referral recommendations yet.")
 
         try:
+            # Convert PIL Image to NumPy array
+            image_np = np.array(image)
+
             # Use the model's forward method
-            reports = self.model.forward([image], [instruction])
+            reports = self.model.forward([image_np], [instruction])
             return reports[0] if reports else "No report generated"
 
         except Exception as e:
