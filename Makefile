@@ -2,7 +2,7 @@ PYTHON = uv run
 
 .PHONY: install
 install:
-	uv sync --all-groups
+	uv sync --python python3.10 --all-groups
 
 .PHONY: train
 train:
