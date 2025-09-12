@@ -1,102 +1,145 @@
-from unsloth import FastVisionModel
-from transformers import TextStreamer
-import logging
+"""
+Isolated RetinaVLM - Standalone version extracted from SpecialistVLMs research repo
+"""
 
-logger = logging.getLogger(__name__)
+import torch
+import numpy as np
+from PIL import Image
+from types import SimpleNamespace
+import os
+import sys
 
+class DictNamespace:
+    """Config object that supports both dictionary and attribute access"""
+    def __init__(self, **kwargs):
+        self.__dict__.update(kwargs)
 
-class VisionLanguageModel:
-    def __init__(self, config):
-        logger.info("Creating model...")
-        self.config = config
-        self.load()
-        self.system_prompt = self.config.system_prompt
-        logger.info("Model created.")
+    def keys(self):
+        return self.__dict__.keys()
 
-    def save(self):
-        self.model.save_pretrained(self.config.save_path)
-        self.processor.save_pretrained(self.config.save_path)
+    def __getitem__(self, key):
+        return self.__dict__[key]
 
-    def load(self):
-        if self.config.from_checkpoint:
-            model, processor = FastVisionModel.from_pretrained(
-                model_name=self.config.checkpoint_path,  # YOUR MODEL YOU USED FOR TRAINING
-                load_in_4bit=True,  # Set to False for 16bit LoRA
-            )
-        else:
-            model, processor = FastVisionModel.from_pretrained(
-                self.config.name,
-                load_in_4bit=True,  # Use 4bit to reduce memory use. False for 16bit LoRA.
-                use_gradient_checkpointing="unsloth",  # True or "unsloth" for long context
-            )
-            model = FastVisionModel.get_peft_model(
-                model,
-                finetune_vision_layers=True,  # False if not finetuning vision layers
-                finetune_language_layers=True,  # False if not finetuning language layers
-                finetune_attention_modules=True,  # False if not finetuning attention layers
-                finetune_mlp_modules=True,  # False if not finetuning MLP layers
-                r=self.config.lora.r,  # The larger, the higher the accuracy, but might overfit
-                lora_alpha=self.config.lora.alpha,  # Recommended alpha == r at least
-                lora_dropout=self.config.lora.dropout,
-                bias="none",
-                random_state=3407,
-                use_rslora=False,  # We support rank stabilized LoRA
-                loftq_config=None,  # And LoftQ
-                target_modules="all-linear",  # Optional now! Can specify a list if needed
-                modules_to_save=[
-                    "lm_head",
-                    "embed_tokens",
-                ],
-            )
-        self.model = model
-        self.processor = processor
+    def __contains__(self, key):
+        return key in self.__dict__
 
-    def train_mode(self):
-        FastVisionModel.for_training(self.model)
+class RetinaVLMModel:
+    def __init__(self, device="auto"):
+        self.device = self._get_device(device)
+        self.model = None
 
-    def inference_mode(self):
-        FastVisionModel.for_inference(self.model)
+        # Add current directory to path for model imports
+        current_dir = os.path.dirname(os.path.abspath(__file__))
+        if current_dir not in sys.path:
+            sys.path.append(current_dir)
 
-    def generate(self, prompt, image, use_streamer=True):
-        messages = [
-            {"role": "system", "content": self.system_prompt},
-            {
-                "role": "user",
-                "content": [{"type": "text", "text": prompt}, {"type": "image"}],
-            },
-        ]
-        input_text = self.processor.apply_chat_template(
-            messages, add_generation_prompt=True
+        self._load_model()
+
+    def _get_device(self, device):
+        if device == "auto":
+            return "cuda" if torch.cuda.is_available() else "cpu"
+        return device
+
+    def _create_enhanced_config(self):
+        """Create enhanced config with all required attributes"""
+        config = SimpleNamespace()
+
+        # Model config
+        config.model = SimpleNamespace()
+        config.model.checkpoint_path = None
+
+        # Vision encoder config
+        config.model.vision_encoder = DictNamespace(
+            name='pretrained_resnet',
+            feature_dim=2048,
+            concatenate_tokens=False,
+            unfrozen_layers=[],
+            blocks=[2, 2, 2, 2],  # ResNet18 structure
+            checkpoint=None
         )
-        inputs = self.processor(
-            image,
-            input_text,
-            add_special_tokens=False,
-            return_tensors="pt",
-        ).to("cuda")
 
-        # greedy decoding
-        if use_streamer:
-            text_streamer = TextStreamer(self.processor, skip_prompt=True)
-            self.model.generate(
-                **inputs,
-                streamer=text_streamer,
-                max_new_tokens=128,
-                use_cache=True,
-                do_sample=False,
-                repetition_penalty=1.15,
+        # Language model config - add initialize attribute
+        config.model.language_model = SimpleNamespace()
+        config.model.language_model.model_id = 'meta-llama/Meta-Llama-3-8B-Instruct'
+        config.model.language_model.load_in_8bit = False
+        config.model.language_model.load_in_4bit = True
+        config.model.language_model.initialize = True  # Initialize the language model
+
+        # Miniformer config
+        config.model.miniformer = SimpleNamespace()
+        config.model.miniformer.name = None
+        config.model.miniformer.linear_upsample = False
+
+        # Token configs
+        config.model.p_tokens = 0
+        config.model.s_tokens = 0
+        config.model.image_patch_position_embedding = False
+
+        # Dataset config
+        config.dataset = SimpleNamespace()
+        config.dataset.task = SimpleNamespace()
+        config.dataset.task.max_txt_len = 512
+        config.dataset.n_vision_tokens = 256
+
+        # Device config
+        config.devices = 1
+
+        # Directory paths
+        current_dir = os.path.dirname(os.path.abspath(__file__))
+        config.retfound_dir = current_dir
+        config.flamingo_dir = current_dir
+        config.llava_med_dir = current_dir
+        config.octlatent_dir = current_dir
+        config.pretrained_model_dir = current_dir
+
+        return config
+
+    def _load_model(self):
+        try:
+            print("Loading RetinaVLM model...")
+
+            from models.retinavlm_wrapper import RetinaVLMConfig, RetinaVLM
+
+            # Load HuggingFace config
+            hf_config = RetinaVLMConfig.from_pretrained(
+                "RobbieHolland/RetinaVLM",
+                subfolder="RetinaVLM-Specialist"
             )
-            return ""  # Streamer prints, so return empty string or None
-        else:
-            outputs = self.model.generate(
-                **inputs,
-                max_new_tokens=128,
-                use_cache=True,
-                do_sample=False,
-                repetition_penalty=1.15,
-            )
-            # Decode only the newly generated tokens (excluding the prompt)
-            decoded_output = self.processor.decode(
-                outputs[0][inputs["input_ids"].shape[1] :], skip_special_tokens=True
-            )
-            return decoded_output
+
+            # Create enhanced config and apply all attributes
+            research_config = self._create_enhanced_config()
+
+            # Apply all config attributes to the HF config
+            for attr_name in dir(research_config):
+                if not attr_name.startswith('_'):
+                    setattr(hf_config, attr_name, getattr(research_config, attr_name))
+
+            # Load the model
+            self.model = RetinaVLM.from_pretrained(
+                "RobbieHolland/RetinaVLM",
+                subfolder="RetinaVLM-Specialist",
+                config=hf_config
+            ).eval()
+
+            print(f"RetinaVLM loaded successfully on {self.device}")
+
+        except Exception as e:
+            print(f"Error loading RetinaVLM: {e}")
+            import traceback
+            traceback.print_exc()
+            raise
+
+    def generate(self, prompt, image):
+        instruction = prompt
+        if instruction is None:
+            instruction = ("Write an extensive report describing the OCT image and "
+                         "listing any visible biomarkers or other observations. "
+                         "Do not provide disease stage or patient referral recommendations yet.")
+
+        try:
+            # Use the model's forward method
+            reports = self.model.forward([image], [instruction])
+            return reports[0] if reports else "No report generated"
+
+        except Exception as e:
+            return f"Error generating report: {e}"

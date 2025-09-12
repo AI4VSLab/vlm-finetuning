@@ -1,3 +1,3 @@
-__all__ = ["VisionLanguageModel"]
+__all__ = ["RetinaVLMModel"]
 
-from model.model import VisionLanguageModel
+from model.model import RetinaVLMModel

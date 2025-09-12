@@ -1,4 +1,3 @@
-__all__ = ["Trainer", "Evaluator"]
+__all__ = ["Evaluator"]
 
-from algorithm.trainer import Trainer
 from algorithm.evaluator import Evaluator
