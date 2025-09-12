@@ -29,6 +29,8 @@ dependencies = [
     "torchmetrics==1.6.2",
     "torchvision==0.16.2",
     "transformers==4.39.3",
+    "pyarrow==14.0.0",
+    "datasets==2.14.6",
 ]
 
 [dependency-groups]

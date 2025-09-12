@@ -7,7 +7,7 @@ import hydra
 from omegaconf import DictConfig
 
 from algorithm import Evaluator
-from model import VisionLanguageModel
+from model import RetinaVLMModel
 from data import OCTEvaluationData
 
 logger = logging.getLogger(__name__)
@@ -38,7 +38,7 @@ def main(config: DictConfig) -> None:
     # The model config now points to your checkpoint.
     # The VisionLanguageModel class will handle loading the base model,
     # processor, and applying the saved adapter weights.
-    model = VisionLanguageModel(config.model)
+    model = RetinaVLMModel()
 
     # --- EVALUATOR ---
     logger.info("Initializing evaluator...")
