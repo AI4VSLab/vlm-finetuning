@@ -184,3 +184,4 @@ gemma-product-description/
 xinxin_tfrecord_files/
 *.tf
 *.pt
+uv.lock
