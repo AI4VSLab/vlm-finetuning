@@ -20,18 +20,3 @@ model:
     Do not provide any explanations, disclaimers, or introductory text.
   from_checkpoint: False
   checkpoint_path: null
-  name: unsloth/medgemma-4b-it-unsloth-bnb-4bit
-  save_path: /content/medgemma-unified
-  lora:
-    r: 32
-    alpha: 64
-    dropout: 0.05
-
-trainer:
-  num_epochs: 3
-  train_batch_size: 56
-  eval_batch_size: 224
-  grad_accum_steps: 1
-  warmup_ratio: 0.1
-  learning_rate: 5e-6
-  logging_steps: 50
