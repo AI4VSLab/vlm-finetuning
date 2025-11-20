@@ -1,25 +1,38 @@
-# OCT Biomarker VLM Training
+# OCT Biomarker VLM (MedGemma + Unsloth)
 
 This repository implements the Vision-Language Model (VLM) component of the paper **"Toward an AI Co-Annotator for Interactive Clinical Diagnosis"**.
 
-It fine-tunes **MedGemma** (a medical-specific VLM) using **Unsloth** and **LoRA** to act as an expert ophthalmology assistant. The model is designed to provide "ontology-bounded" biomarker summaries i.e. it detects specific, clinically relevant features rather than generating free-text descriptions.
+It fine-tunes **MedGemma** using **Unsloth** to serve as an expert ophthalmology assistant, capable of diagnosing AMD and identifying specific retinal biomarkers.
 
-## Key Features
+## Data
 
-  * **Model Architecture**: Finetuned `unsloth/medgemma-4b-it` using 4-bit Quantized LoRA (Low-Rank Adaptation) for efficient training on consumer GPUs.
-  * **Two-Stage Curriculum Learning**:
-    1.  **Foundation Stage**: Trains on large-scale binary diagnosis (Normal vs. Wet AMD) and VQA tasks to learn visual features.
-    2.  **Unified Stage**: Adds the complex "Biomarker List Generation" task while maintaining performance on diagnosis.
-  * **Balanced Sampling**: Implements a custom `WeightedRandomSampler` to handle severe class imbalances between "Normal" and "Pathological" samples across different tasks.
-  * **Strict Biomarker Ontology**: The model is trained to recognize a specific schema of 18 retinal biomarkers (e.g., *Drusen, Intraretinal Fluid, Choroidal Neovascularization*) to ensure clinical precision.
+The project utilizes three distinct dataset types to train the model:
 
-## Tasks
+  * **Diagnosis**: Binary classification data (Normal vs. Wet AMD).
+  * **VQA**: Pairs of images and specific "Yes/No" questions about biomarker presence.
+  * **Biomarker List**: Images paired with a comma-separated list of all visible pathological findings.
 
-The model learns to solve three distinct tasks simultaneously:
+To handle the severe class imbalance often found in medical data (e.g., far more "No" answers than "Yes"), the data loader implements a custom `WeightedRandomSampler` to ensure balanced exposure to all classes during training.
 
-1.  **Diagnosis**: `[DIAGNOSIS] What is the diagnosis...?` $\rightarrow$ `Wet Age-related Macular Degeneration`
-2.  **VQA (Visual Question Answering)**: `[VQA] Is Subretinal Fluid present...?` $\rightarrow$ `Yes`
-3.  **List Generation**: `[BIOMARKERS] What biomarkers are visible...?` $\rightarrow$ `Drusen, Subretinal Fluid, Hemorrhage`
+## Model
+
+The core model is **MedGemma** (a medical VLM) optimized via **Unsloth** for efficient training.
+
+  * **Architecture**: The model is fine-tuned using **4-bit Quantized LoRA** (Low-Rank Adaptation), allowing it to run on consumer-grade GPUs while retaining high accuracy.
+  * **Tasks**: The model is trained to perform three tasks simultaneously:
+    1.  **Diagnosis**: Predicting "Wet Age-related Macular Degeneration" or "Normal".
+    2.  **VQA**: Answering targeted questions like "Is Subretinal Fluid present?".
+    3.  **List Generation**: Outputting a structured list of findings (e.g., "Drusen, Hemorrhage").
+  * **Ontology-Bounded**: The model is constrained to recognize a specific schema of 18 clinically relevant biomarkers, preventing the generation of vague or hallucinated text.
+
+## Algorithm
+
+The training strategy employs a **Two-Stage Curriculum** to ensure optimal performance:
+
+1.  **Foundation Stage**: The model is first trained on large-scale binary Diagnosis and VQA tasks to build a strong visual understanding of retinal pathology.
+2.  **Unified Stage**: The complex "Biomarker List Generation" task is introduced. The model is trained on all three tasks together to refine its ability to detect and list multiple findings.
+
+Evaluation is performed using a custom `Evaluator` that calculates Accuracy for diagnosis and semantic metrics (BLEU, METEOR, BERTScore) for the generated biomarker lists.
 
 ## Installation
 
@@ -29,18 +42,11 @@ This project uses `uv` for fast dependency management.
 make install
 ```
 
-## Data Structure
-
-The project relies on Hydra for configuration. Ensure your data is organized as follows and update `src/config/train.yaml` with your paths:
-
-  * **Diagnosis Data**: Folder structure compatible with `torchvision.datasets.ImageFolder` (e.g., `root/train/CNV/x.jpg`).
-  * **Biomarker Data**: A folder of images and a CSV file containing columns for `image_filename` and `biomarkers` (list of strings).
-
 ## Usage
 
 ### 1\. Training
 
-The training pipeline uses `hydra` to manage configurations. You can use the Makefile shortcuts:
+The training pipeline uses `hydra` for configuration. You can use the Makefile shortcuts:
 
 ```bash
 # Train the model (Default configuration)
@@ -59,18 +65,11 @@ python src/train.py data.stage=unified
 
 ### 2\. Evaluation
 
-Evaluates the model on held-out test sets using **Accuracy** (for Diagnosis/VQA) and **BERTScore/MedBERTScore** (for Biomarker text generation).
+Evaluates the model on held-out test sets using Accuracy and text-generation metrics.
 
 ```bash
 make test
 ```
-
-## Project Layout
-
-  * `src/algorithm/`: Custom `BalancedSFTTrainer` and `Evaluator` logic.
-  * `src/data/`: Dataset classes (`OCTDiagnosis`, `OCTBiomarkers`, `OCTVQA`) and sampling logic.
-  * `src/model/`: MedGemma wrapper using `Unsloth` and `Peft`.
-  * `src/config/`: Hyperparameters for training (`train.yaml`) and evaluation (`evaluate.yaml`).
 
 ## Citation
 
