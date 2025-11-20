@@ -1,8 +1,4 @@
-Here is a more comprehensive README. It balances simplicity with critical technical details about the model architecture, training curriculum, and biomarker ontology, which are essential for understanding *how* the project works.
-
------
-
-# OCT Biomarker VLM (MedGemma + Unsloth)
+# OCT Biomarker VLM Training
 
 This repository implements the Vision-Language Model (VLM) component of the paper **"Toward an AI Co-Annotator for Interactive Clinical Diagnosis"**.
 
