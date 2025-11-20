@@ -1,4 +1,4 @@
-# OCT Biomarker VLM (MedGemma + Unsloth)
+# OCT Biomarker VLM Training
 
 This repository implements the Vision-Language Model (VLM) component of the paper **"Toward an AI Co-Annotator for Interactive Clinical Diagnosis"**.
 
