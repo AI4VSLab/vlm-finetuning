@@ -73,4 +73,28 @@ make test
 
 ## Citation
 
-> **Toward an AI Co-Annotator for Interactive Clinical Diagnosis: Gaze-Aligned ViT AOI Guidance and Ontology-Bounded VLM Biomarker Drafting in Age-Related Macular Degeneration**.
+
+## Citation
+
+
+## Citation
+
+If you use this repository, the associated dataset, or the trained model in your research, please cite our paper:
+
+**Co-Annotator: Expert-Distilled ViT and VLM for Visual and Documentation Guidance in Age-Related Macular Degeneration**
+
+*ACM Symposium on User Interface Software and Technology (UIST '26)*
+
+```bibtex
+@inproceedings{li2026coannotator,
+  title     = {Co-Annotator: Expert-Distilled ViT and VLM for Visual and Documentation Guidance in Age-Related Macular Degeneration},
+  author    = {Li, Ziheng and Freeman, Benjamin and Raman, Akshay and Rajkumar, Kavin Aravindhan and Fang, Xinxin and Srivastava, Rishabh and Feiner, Steven and Thakoor, Kaveri A.},
+  booktitle = {Proceedings of the 39th Annual ACM Symposium on User Interface Software and Technology (UIST '26)},
+  year      = {2026},
+  publisher = {Association for Computing Machinery},
+  doi       = {10.1145/3830398.3830722},
+  url       = {https://doi.org/10.1145/3830398.3830722}
+}
+```
+
+**Paper:** [arXiv](https://arxiv.org/abs/2608.30352) | [ACM DOI](https://doi.org/10.1145/3830398.3830722)
