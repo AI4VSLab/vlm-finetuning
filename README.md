@@ -73,12 +73,6 @@ make test
 
 ## Citation
 
-
-## Citation
-
-
-## Citation
-
 If you use this repository, the associated dataset, or the trained model in your research, please cite our paper:
 
 **Co-Annotator: Expert-Distilled ViT and VLM for Visual and Documentation Guidance in Age-Related Macular Degeneration**
